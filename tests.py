@@ -46,10 +46,10 @@ class SimplePowerTests(unittest.TestCase):
         self.assertEqual(evaluate('2 ^ 2 ^ 2 ^ 2'), 65536.0)
 
 
-class SimpleAdditionMultiplicationTests(unittest.TestCase):
+class SimpleParenthesisTests(unittest.TestCase):
     def runTest(self):
-        self.assertEqual(evaluate('1 + 1 * 2'), 3.0)
-        self.assertEqual(evaluate('1 * 2 + 1'), 3.0)
+        self.assertEqual(evaluate('( 1 + 2 ) * 3'), 9.0)
+        self.assertEqual(evaluate('( 1 + 2 ) ^ ( 2 * 3 - 2 )'), 81.0)
 
 
 class CombinationTests(unittest.TestCase):

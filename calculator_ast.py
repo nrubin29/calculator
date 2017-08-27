@@ -11,11 +11,13 @@ token_map = {
     r'\-':  'ADD',
     r'\*':  'MUL',
     r'\/':  'MUL',
-    r'\^':  'POW'
+    r'\^':  'POW',
+    r'\(':  'LPA',
+    r'\)':  'RPA'
 }
 
 rules_map = OrderedDict((
-    ('num', ('NUM',)),
+    ('num', ('NUM', 'LPA add RPA')),
     ('add', ('mul ADD add', 'mul')),
     ('mul', ('pow MUL mul', 'pow')),
     ('pow', ('num POW pow', 'num'))
@@ -82,6 +84,10 @@ class Ast:
         # This flattens rules with a single matched element.
         if len(ast.matched) is 1:
             return self._fixed(ast.matched[0])
+
+        # This flattens `num`s by removing parentheses.
+        if ast.name == 'num' and len(ast.matched) is 3:
+            return self._fixed(ast.matched[1])
 
         # This makes left-associative operations left-associative.
         for token_name, rule in left_assoc.items():
