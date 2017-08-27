@@ -6,32 +6,37 @@ Token = namedtuple('Token', ('name', 'value'))
 RuleMatch = namedtuple('RuleMatch', ('name', 'matched'))
 
 token_map = {
-    'NUM': r'\d+',
-    'ADD': r'\+',
-    'SUB': r'\-',
-    'MUL': r'\*',
-    'DIV': r'\/',
+    r'\d+': 'NUM',
+    r'\+':  'ADD',
+    r'\-':  'ADD',
+    r'\*':  'MUL',
+    r'\/':  'MUL',
+    r'\^':  'POW'
 }
 
 rules_map = OrderedDict((
-    ('add', ('sub', 'mul ADD add', 'mul')),
-    ('sub', ('NUM SUB mul', 'mul SUB add')),
-    ('mul', ('div DIV mul', 'div', 'NUM MUL mul', 'NUM')),
-    ('div', ('NUM DIV mul',))
+    ('num', ('NUM',)),
+    ('add', ('mul ADD add', 'mul')),
+    ('mul', ('pow MUL mul', 'pow')),
+    ('pow', ('num POW pow', 'num'))
 ))
 
+left_assoc = {
+    'ADD': 'add',
+    'MUL': 'mul',
+}
+
 calc_map = {
-    'add': lambda tokens: float(tokens[0].value) + float(tokens[2].value),
-    'sub': lambda tokens: float(tokens[0].value) - float(tokens[2].value),
-    'mul': lambda tokens: float(tokens[0].value) * float(tokens[2].value),
-    'div': lambda tokens: float(tokens[0].value) / float(tokens[2].value)
+    'add': lambda tokens: float(tokens[0].value) + float(tokens[2].value) if tokens[1].value == '+' else float(tokens[0].value) - float(tokens[2].value),
+    'mul': lambda tokens: float(tokens[0].value) * float(tokens[2].value) if tokens[1].value == '*' else float(tokens[0].value) / float(tokens[2].value),
+    'pow': lambda tokens: float(tokens[0].value) ** float(tokens[2].value)
 }
 
 
 class Calculator:
     def __init__(self, eqtn: str):
         self.eqtn = eqtn
-        self.tokens = [[Token(key, token) for key, value in token_map.items() if re.match(value, token)][0] for token in
+        self.tokens = [[Token(value, token) for key, value in token_map.items() if re.match(key, token)][0] for token in
                        eqtn.split(' ')]
 
     def ast(self):
@@ -71,8 +76,20 @@ class Ast:
     def _fixed(self, ast):
         # print('**_fixed ast', ast)
 
-        if (ast.name == 'mul' or ast.name == 'add') and len(ast.matched) is 1:
+        if not isinstance(ast, RuleMatch):
+            return ast
+
+        # This flattens rules with a single matched element.
+        if len(ast.matched) is 1:
             return self._fixed(ast.matched[0])
+
+        # This makes left-associative operations left-associative.
+        for token_name, rule in left_assoc.items():
+            if len(ast.matched) == 3 and ast.matched[1].name == token_name and isinstance(ast.matched[2], RuleMatch) and len(ast.matched[2].matched) == 3 and ast.matched[2].matched[1].name == token_name:
+                ast.matched[0] = RuleMatch(rule, [ast.matched[0], ast.matched[1], ast.matched[2].matched[0]])
+                ast.matched[1] = ast.matched[2].matched[1]
+                ast.matched[2] = ast.matched[2].matched[2]
+                return self._fixed(ast)
 
         if isinstance(ast, RuleMatch):
             for i in range(len(ast.matched)):

@@ -5,7 +5,9 @@ from calculator_ast import Calculator
 
 
 def evaluate(eqtn: str):
+    print(eqtn)
     calc = Calculator(eqtn)
+    # print(calc.tokens)
     ast = calc.ast()
     print(ast)
     print(ast.evaluate())
@@ -33,8 +35,15 @@ class SimpleMultiplicationTests(unittest.TestCase):
 class SimpleDivisionTests(unittest.TestCase):
     def runTest(self):
         self.assertEqual(evaluate('1 / 1'), 1.0)
-        # self.assertEqual(evaluate('24 / 4 / 6'), 1.0)
+        self.assertEqual(evaluate('24 / 4 / 6'), 1.0)
         self.assertEqual(round(evaluate('2 / 3'), 3), 0.667)
+        self.assertEqual(evaluate('112 / 2 / 4 / 7'), 2.0)
+
+
+class SimplePowerTests(unittest.TestCase):
+    def runTest(self):
+        self.assertEqual(evaluate('2 ^ 3'), 8.0)
+        self.assertEqual(evaluate('2 ^ 2 ^ 2 ^ 2'), 65536.0)
 
 
 class SimpleAdditionMultiplicationTests(unittest.TestCase):
@@ -46,20 +55,22 @@ class SimpleAdditionMultiplicationTests(unittest.TestCase):
 class CombinationTests(unittest.TestCase):
     def runTest(self):
         self.assertEqual(evaluate('1 + 2 * 3 + 4 * 5'), 27)
+        self.assertEqual(evaluate('10 ^ 2 - 2 ^ 3 + 3 * 2 ^ 4'), 140.0)
+        self.assertEqual(evaluate('1 + 2 - 3 ^ 4 * 5'), -402.0)
+        self.assertEqual(evaluate('2 ^ 2 * 3 ^ 2'), 36.0)
 
 
-# class RandomTests(unittest.TestCase):
-#     def runTest(self):
-#         for _ in range(100):
-#             eqtn = ''
-#
-#             for i in range(3):
-#                 eqtn += '{} {} '.format(random.randint(0, 100), random.choice(('+', '-', '*', '/')))
-#
-#             eqtn = eqtn.strip()[:-2]
-#
-#             print(eqtn)
-#             self.assertEqual(evaluate(eqtn), eval(eqtn))
+class RandomTests(unittest.TestCase):
+    def runTest(self):
+        for _ in range(100):
+            eqtn = ''
+
+            for i in range(10):
+                eqtn += '{} {} '.format(random.randint(1, 100), random.choice(('+', '-', '*', '/')))
+
+            eqtn = eqtn.strip()[:-2]
+
+            self.assertEqual(evaluate(eqtn), eval(eqtn.replace('^', '**')))
 
 if __name__ == '__main__':
     unittest.main()
