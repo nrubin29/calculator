@@ -15,6 +15,7 @@ token_map = OrderedDict((
     (r'=',                  'EQL'),
     (r'\+',                 'ADD'),
     (r'-',                  'ADD'),
+    (r'\*\*',               'POW'),
     (r'\*',                 'MUL'),
     (r'\/',                 'MUL'),
     (r'%',                  'MUL'),

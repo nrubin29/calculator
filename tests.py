@@ -90,7 +90,7 @@ class RandomTests(unittest.TestCase):
 
             eqtn = eqtn.strip()[:-2]
 
-            self.assertEqual(evaluate(eqtn), eval(eqtn.replace('^', '**')))
+            self.assertEqual(evaluate(eqtn), eval(eqtn))
 
 if __name__ == '__main__':
     unittest.main()
