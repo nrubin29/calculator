@@ -8,25 +8,25 @@ Token = namedtuple('Token', ('name', 'value'))
 RuleMatch = namedtuple('RuleMatch', ('name', 'matched'))
 
 token_map = OrderedDict((
-    (r'-?\d+(?:\.\d+)?',  'NUM'),
-    (r'sqrt',           'OPR'),
-    (r'exp',            'OPR'),
-    (r'[a-zA-Z_]+',     'IDT'),
-    (r'=',              'EQL'),
-    (r'\+',             'ADD'),
-    (r'-',              'ADD'),
-    (r'\*',             'MUL'),
-    (r'\/',             'MUL'),
-    (r'%',              'MUL'),
-    (r'\^',             'POW'),
-    (r'\(',             'LPA'),
-    (r'\)',             'RPA')
+    (r'-?\d+(?:\.\d+)?',    'NUM'),
+    (r'sqrt',               'OPR'),
+    (r'exp',                'OPR'),
+    (r'[a-zA-Z_]+',         'IDT'),
+    (r'=',                  'EQL'),
+    (r'\+',                 'ADD'),
+    (r'-',                  'ADD'),
+    (r'\*',                 'MUL'),
+    (r'\/',                 'MUL'),
+    (r'%',                  'MUL'),
+    (r'\^',                 'POW'),
+    (r'\(',                 'LPA'),
+    (r'\)',                 'RPA')
 ))
 
 rules_map = OrderedDict((
     ('num', ('NUM', 'IDT', 'LPA add RPA')),
+    ('idt', ('IDT EQL opr', 'add')),
     ('opr', ('OPR LPA add RPA', 'idt')),
-    ('idt', ('IDT EQL add', 'add')),
     ('add', ('mul ADD add', 'mul')),
     ('mul', ('pow MUL mul', 'pow mul', 'pow')),
     ('pow', ('num POW pow', 'num'))
@@ -47,22 +47,20 @@ calc_map = {
 
 
 class Calculator:
-    def __init__(self, eqtn: str):
-        self.eqtns = eqtn.split(';')
+    def __init__(self):
+        self.vrs = {}
 
-    def evaluate(self):
-        vrs = {}
-
-        for eqtn in self.eqtns:
-            ast = Ast(self._match(self._tokenize(eqtn), 'opr')[0])
+    def evaluate(self, eqtn: str):
+        for e in eqtn.split(';'):
+            ast = Ast(self._match(self._tokenize(e), 'opr')[0])
             print(ast)
-            res = ast.evaluate(vrs)
+            res = ast.evaluate(self.vrs)
 
             if isinstance(res, Token):
                 return res.value
 
             elif isinstance(res, dict):
-                vrs.update(res)
+                self.vrs.update(res)
 
     def _tokenize(self, eqtn: str):
         tokens = []
@@ -184,3 +182,8 @@ class Ast:
                 output += (('\t' * (depth + 1)) + matched.name + ': ' + matched.value) + '\n'
 
         return output
+
+if __name__ == '__main__':
+    calc = Calculator()
+    while True:
+        print(calc.evaluate(input('>> ')))

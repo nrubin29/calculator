@@ -6,8 +6,8 @@ from calculator_ast import Calculator
 
 def evaluate(eqtn: str):
     print(eqtn)
-    calc = Calculator(eqtn)
-    res = calc.evaluate()
+    calc = Calculator()
+    res = calc.evaluate(eqtn)
     print(res)
     return res
 
@@ -86,7 +86,7 @@ class RandomTests(unittest.TestCase):
             eqtn = ''
 
             for i in range(10):
-                eqtn += '{} {} '.format(random.randint(1, 100), random.choice(('+', '-', '*', '/')))
+                eqtn += '{} {} '.format(random.randint(1, 100), random.choice(('+', '-', '*', '/', '%')))
 
             eqtn = eqtn.strip()[:-2]
 
