@@ -7,33 +7,30 @@ from calculator_ast import Calculator
 def evaluate(eqtn: str):
     print(eqtn)
     calc = Calculator(eqtn)
-    # print(calc.tokens)
-    ast = calc.ast()
-    print(ast)
-    print(ast.evaluate())
-    return ast.evaluate()
+    print(calc.evaluate())
+    return calc.evaluate()
 
 
-class SimpleAdditionTests(unittest.TestCase):
+class AdditionTests(unittest.TestCase):
     def runTest(self):
         self.assertEqual(evaluate('1 + 2'), 3.0)
         self.assertEqual(evaluate('2 + 3'), 5.0)
 
 
-class SimpleSubtractionTests(unittest.TestCase):
+class SubtractionTests(unittest.TestCase):
     def runTest(self):
         self.assertEqual(evaluate('1 - 2'), -1.0)
         self.assertEqual(evaluate('3 - 2'), 1.0)
 
 
-class SimpleMultiplicationTests(unittest.TestCase):
+class MultiplicationTests(unittest.TestCase):
     def runTest(self):
         self.assertEqual(evaluate('1 * 1'), 1.0)
         self.assertEqual(evaluate('2 * 3'), 6.0)
         self.assertEqual(evaluate('(2 * 3) (2 * 3)'), 36.0)
 
 
-class SimpleDivisionTests(unittest.TestCase):
+class DivisionTests(unittest.TestCase):
     def runTest(self):
         self.assertEqual(evaluate('1 / 1'), 1.0)
         self.assertEqual(evaluate('24 / 4 / 6'), 1.0)
@@ -42,17 +39,23 @@ class SimpleDivisionTests(unittest.TestCase):
         self.assertEqual(evaluate('4 % 3'), 1.0)
 
 
-class SimplePowerTests(unittest.TestCase):
+class PowerTests(unittest.TestCase):
     def runTest(self):
         self.assertEqual(evaluate('2 ^ 3'), 8.0)
         self.assertEqual(evaluate('2 ^ 2 ^ 2 ^ 2'), 65536.0)
 
 
-class SimpleParenthesisTests(unittest.TestCase):
+class ParenthesisTests(unittest.TestCase):
     def runTest(self):
         self.assertEqual(evaluate('( 1 + 2 ) * 3'), 9.0)
         self.assertEqual(evaluate('( 1 + 2 ) ^ (2 * 3 - 2)'), 81.0)
         self.assertEqual(evaluate('2 (1 + 1)'), 4.0)
+
+
+class IdentifierTests(unittest.TestCase):
+    def runTest(self):
+        self.assertEqual(evaluate('r = 10; r'), 10.0)
+        self.assertEqual(round(evaluate('r = 5.2 * (3 + 2 / (1 + 1/6)); pi = 3.14159; area = pi * r^2; area'), 5), 1887.93915)
 
 
 class CombinationTests(unittest.TestCase):

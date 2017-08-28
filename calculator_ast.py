@@ -1,24 +1,27 @@
 import re
 from collections import namedtuple, OrderedDict
-from typing import List
+from typing import List, Dict
 
 Token = namedtuple('Token', ('name', 'value'))
 RuleMatch = namedtuple('RuleMatch', ('name', 'matched'))
 
-token_map = {
-    r'\d+': 'NUM',
-    r'\+':  'ADD',
-    r'\-':  'ADD',
-    r'\*':  'MUL',
-    r'\/':  'MUL',
-    r'\%':  'MUL',
-    r'\^':  'POW',
-    r'\(':  'LPA',
-    r'\)':  'RPA'
-}
+token_map = OrderedDict((
+    (r'\d+(?:\.\d+)?', 'NUM'),
+    (r'[a-zA-Z_]+',  'IDT'),
+    (r'\+',          'ADD'),
+    (r'=',           'EQL'),
+    (r'-',           'ADD'),
+    (r'\*',          'MUL'),
+    (r'\/',          'MUL'),
+    (r'%',           'MUL'),
+    (r'\^',          'POW'),
+    (r'\(',          'LPA'),
+    (r'\)',          'RPA')
+))
 
 rules_map = OrderedDict((
-    ('num', ('NUM', 'LPA add RPA')),
+    ('num', ('NUM', 'IDT', 'LPA add RPA')),
+    ('idt', ('IDT EQL add', 'add')),
     ('add', ('mul ADD add', 'mul')),
     ('mul', ('pow MUL mul', 'pow mul', 'pow')),
     ('pow', ('num POW pow', 'num'))
@@ -30,6 +33,7 @@ left_assoc = {
 }
 
 calc_map = {
+    'num': lambda tokens: float(tokens[0].value),
     'add': lambda tokens: float(tokens[0].value) + float(tokens[2].value) if tokens[1].value == '+' else float(tokens[0].value) - float(tokens[2].value),
     'mul': lambda tokens: float(tokens[0].value) * float(tokens[2].value) if tokens[1].value == '*' else float(tokens[0].value) / float(tokens[2].value) if tokens[1].value == '/' else float(tokens[0].value) % float(tokens[2].value),
     'pow': lambda tokens: float(tokens[0].value) ** float(tokens[2].value)
@@ -38,17 +42,28 @@ calc_map = {
 
 class Calculator:
     def __init__(self, eqtn: str):
-        self.eqtn = eqtn
-        self.tokens = self._tokenize()
+        self.eqtns = eqtn.split(';')
 
-    def ast(self):
-        return Ast(self._match(self.tokens, 'add')[0])
+    def evaluate(self):
+        vrs = {}
 
-    def _tokenize(self):
+        for eqtn in self.eqtns:
+            ast = Ast(self._match(self._tokenize(eqtn), 'idt')[0])
+            print(ast)
+            res = ast.evaluate(vrs)
+
+            if isinstance(res, Token):
+                return res.value
+
+            elif isinstance(res, dict):
+                vrs.update(res)
+
+    def _tokenize(self, eqtn: str):
         tokens = []
 
-        for match in re.findall('|'.join(token_map.keys()), self.eqtn):
-            tokens.append(Token([value for key, value in token_map.items() if re.match(key, match)][0], match))
+        for match in re.findall('(' + ')|('.join(token_map.keys()) + ')', eqtn):
+            entry = next(filter(lambda entry: entry[1] != '', enumerate(match)), None)
+            tokens.append(Token(list(token_map.values())[entry[0]], entry[1]))
 
         return tokens
 
@@ -90,7 +105,7 @@ class Ast:
             return ast
 
         # This flattens rules with a single matched element.
-        if len(ast.matched) is 1:
+        if len(ast.matched) is 1 and ast.name != 'num':
             return self._fixed(ast.matched[0])
 
         # This flattens `num`s by removing parentheses.
@@ -117,19 +132,22 @@ class Ast:
 
         return ast
 
-    def evaluate(self):
-        return self._evaluate(self.ast).value
+    def evaluate(self, vrs: Dict[str, float]):
+        return self._evaluate(self.ast, vrs)
 
-    def _evaluate(self, ast):
+    def _evaluate(self, ast, vrs: Dict[str, float]):
+        if ast.name == 'idt':
+            vrs[ast.matched[0].value] = self._evaluate(ast.matched[2], vrs).value
+            return vrs
+
         for i in range(len(ast.matched)):
             token = ast.matched[i]
 
             if isinstance(token, RuleMatch):
-                ast.matched[i] = self._evaluate(token)
-                return self._evaluate(ast)
+                ast.matched[i] = self._evaluate(token, vrs)
+                return self._evaluate(ast, vrs)
         else:
-            # print('can do operation for', ast)
-            return Token('NUM', calc_map[ast.name](ast.matched))
+            return Token('NUM', calc_map[ast.name](ast.matched) if ast.matched[0].name != 'IDT' else vrs[ast.matched[0].value])
 
     def __str__(self):
         return self._str(self.ast)
