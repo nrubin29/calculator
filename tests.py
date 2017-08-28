@@ -58,6 +58,14 @@ class IdentifierTests(unittest.TestCase):
         self.assertEqual(round(evaluate('r = 5.2 * (3 + 2 / (1 + 1/6)); pi = 3.14159; area = pi * r^2; area'), 5), 1887.93915)
 
 
+class OperationTests(unittest.TestCase):
+    def runTest(self):
+        self.assertEqual(evaluate('sqrt(4)'), 2.0)
+        self.assertEqual(evaluate('sqrt(8 + 1)'), 3.0)
+        self.assertEqual(evaluate('sqrt((4 * 5 - 1) % 10)'), 3.0)
+        self.assertEqual(round(evaluate('exp(3)'), 5), 20.08554)
+
+
 class CombinationTests(unittest.TestCase):
     def runTest(self):
         self.assertEqual(evaluate('1 + 2 * 3 + 4 * 5'), 27)

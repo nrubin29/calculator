@@ -2,25 +2,30 @@ import re
 from collections import namedtuple, OrderedDict
 from typing import List, Dict
 
+import math
+
 Token = namedtuple('Token', ('name', 'value'))
 RuleMatch = namedtuple('RuleMatch', ('name', 'matched'))
 
 token_map = OrderedDict((
-    (r'\d+(?:\.\d+)?', 'NUM'),
-    (r'[a-zA-Z_]+',  'IDT'),
-    (r'\+',          'ADD'),
-    (r'=',           'EQL'),
-    (r'-',           'ADD'),
-    (r'\*',          'MUL'),
-    (r'\/',          'MUL'),
-    (r'%',           'MUL'),
-    (r'\^',          'POW'),
-    (r'\(',          'LPA'),
-    (r'\)',          'RPA')
+    (r'\d+(?:\.\d+)?',  'NUM'),
+    (r'sqrt',           'OPR'),
+    (r'exp',            'OPR'),
+    (r'[a-zA-Z_]+',     'IDT'),
+    (r'=',              'EQL'),
+    (r'\+',             'ADD'),
+    (r'-',              'ADD'),
+    (r'\*',             'MUL'),
+    (r'\/',             'MUL'),
+    (r'%',              'MUL'),
+    (r'\^',             'POW'),
+    (r'\(',             'LPA'),
+    (r'\)',             'RPA')
 ))
 
 rules_map = OrderedDict((
     ('num', ('NUM', 'IDT', 'LPA add RPA')),
+    ('opr', ('OPR LPA add RPA', 'idt')),
     ('idt', ('IDT EQL add', 'add')),
     ('add', ('mul ADD add', 'mul')),
     ('mul', ('pow MUL mul', 'pow mul', 'pow')),
@@ -36,7 +41,8 @@ calc_map = {
     'num': lambda tokens: float(tokens[0].value),
     'add': lambda tokens: float(tokens[0].value) + float(tokens[2].value) if tokens[1].value == '+' else float(tokens[0].value) - float(tokens[2].value),
     'mul': lambda tokens: float(tokens[0].value) * float(tokens[2].value) if tokens[1].value == '*' else float(tokens[0].value) / float(tokens[2].value) if tokens[1].value == '/' else float(tokens[0].value) % float(tokens[2].value),
-    'pow': lambda tokens: float(tokens[0].value) ** float(tokens[2].value)
+    'pow': lambda tokens: float(tokens[0].value) ** float(tokens[2].value),
+    'opr': lambda tokens: {'sqrt': math.sqrt, 'exp': math.exp}[tokens[0].value](tokens[1].value)
 }
 
 
@@ -48,7 +54,7 @@ class Calculator:
         vrs = {}
 
         for eqtn in self.eqtns:
-            ast = Ast(self._match(self._tokenize(eqtn), 'idt')[0])
+            ast = Ast(self._match(self._tokenize(eqtn), 'opr')[0])
             print(ast)
             res = ast.evaluate(vrs)
 
@@ -124,6 +130,13 @@ class Ast:
         if ast.name == 'mul' and len(ast.matched) == 2:
             ast.matched.append(ast.matched[1])
             ast.matched[1] = Token('MUL', '*')
+            return self._fixed(ast)
+
+        # This removes the parentheses from an operation.
+        if ast.name == 'opr' and len(ast.matched) == 4:
+            ast.matched[1] = ast.matched[2]
+            del ast.matched[3]
+            del ast.matched[2]
             return self._fixed(ast)
 
         if isinstance(ast, RuleMatch):
