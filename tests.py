@@ -39,6 +39,7 @@ class SimpleDivisionTests(unittest.TestCase):
         self.assertEqual(evaluate('24 / 4 / 6'), 1.0)
         self.assertEqual(round(evaluate('2 / 3'), 3), 0.667)
         self.assertEqual(evaluate('112 / 2 / 4 / 7'), 2.0)
+        self.assertEqual(evaluate('4 % 3'), 1.0)
 
 
 class SimplePowerTests(unittest.TestCase):

@@ -11,6 +11,7 @@ token_map = {
     r'\-':  'ADD',
     r'\*':  'MUL',
     r'\/':  'MUL',
+    r'\%':  'MUL',
     r'\^':  'POW',
     r'\(':  'LPA',
     r'\)':  'RPA'
@@ -30,7 +31,7 @@ left_assoc = {
 
 calc_map = {
     'add': lambda tokens: float(tokens[0].value) + float(tokens[2].value) if tokens[1].value == '+' else float(tokens[0].value) - float(tokens[2].value),
-    'mul': lambda tokens: float(tokens[0].value) * float(tokens[2].value) if tokens[1].value == '*' else float(tokens[0].value) / float(tokens[2].value),
+    'mul': lambda tokens: float(tokens[0].value) * float(tokens[2].value) if tokens[1].value == '*' else float(tokens[0].value) / float(tokens[2].value) if tokens[1].value == '/' else float(tokens[0].value) % float(tokens[2].value),
     'pow': lambda tokens: float(tokens[0].value) ** float(tokens[2].value)
 }
 
