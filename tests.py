@@ -7,8 +7,9 @@ from calculator_ast import Calculator
 def evaluate(eqtn: str):
     print(eqtn)
     calc = Calculator(eqtn)
-    print(calc.evaluate())
-    return calc.evaluate()
+    res = calc.evaluate()
+    print(res)
+    return res
 
 
 class AdditionTests(unittest.TestCase):
@@ -21,12 +22,16 @@ class SubtractionTests(unittest.TestCase):
     def runTest(self):
         self.assertEqual(evaluate('1 - 2'), -1.0)
         self.assertEqual(evaluate('3 - 2'), 1.0)
+        self.assertEqual(evaluate('-2'), -2.0)
+        self.assertEqual(evaluate('-2 + 1'), -1.0)
+        self.assertEqual(evaluate('1 + -2'), -1.0)
 
 
 class MultiplicationTests(unittest.TestCase):
     def runTest(self):
         self.assertEqual(evaluate('1 * 1'), 1.0)
         self.assertEqual(evaluate('2 * 3'), 6.0)
+        # self.assertEqual(evaluate('-2 * -2'), 4.0)
         self.assertEqual(evaluate('(2 * 3) (2 * 3)'), 36.0)
 
 
@@ -72,6 +77,7 @@ class CombinationTests(unittest.TestCase):
         self.assertEqual(evaluate('10 ^ 2 - 2 ^ 3 + 3 * 2 ^ 4'), 140.0)
         self.assertEqual(evaluate('1 + 2 - 3 ^ 4 * 5'), -402.0)
         self.assertEqual(evaluate('2 ^ 2 * 3 ^ 2'), 36.0)
+        self.assertEqual(evaluate('a = 2; b = 3; 3*(2 + a + 5*b*2 + 3)'), 111.0)
 
 
 class RandomTests(unittest.TestCase):

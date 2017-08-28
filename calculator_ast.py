@@ -8,7 +8,7 @@ Token = namedtuple('Token', ('name', 'value'))
 RuleMatch = namedtuple('RuleMatch', ('name', 'matched'))
 
 token_map = OrderedDict((
-    (r'\d+(?:\.\d+)?',  'NUM'),
+    (r'-?\d+(?:\.\d+)?',  'NUM'),
     (r'sqrt',           'OPR'),
     (r'exp',            'OPR'),
     (r'[a-zA-Z_]+',     'IDT'),
@@ -162,8 +162,15 @@ class Ast:
         else:
             return Token('NUM', calc_map[ast.name](ast.matched) if ast.matched[0].name != 'IDT' else vrs[ast.matched[0].value])
 
+    def infix(self):
+        # TODO: Add parentheses where needed.
+        return self._infix(self.ast)
+
+    def _infix(self, ast: RuleMatch):
+        return ' '.join(map(lambda t: t.value if isinstance(t, Token) else self._infix(t), ast.matched))
+
     def __str__(self):
-        return self._str(self.ast)
+        return self._str(self.ast)  # + '\n>> ' + self.infix()
 
     def _str(self, ast, depth=0):
         output = (('\t' * depth) + ast.name) + '\n'
