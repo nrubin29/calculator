@@ -38,13 +38,20 @@ calc_map = {
 class Calculator:
     def __init__(self, eqtn: str):
         self.eqtn = eqtn
-        self.tokens = [[Token(value, token) for key, value in token_map.items() if re.match(key, token)][0] for token in
-                       eqtn.split(' ')]
+        self.tokens = self._tokenize()
 
     def ast(self):
         return Ast(self._match(self.tokens, 'add')[0])
 
-    def _match(self, tokens: List[Token], target_rule: str=None):
+    def _tokenize(self):
+        tokens = []
+
+        for match in re.findall('|'.join(token_map.keys()), self.eqtn):
+            tokens.append(Token([value for key, value in token_map.items() if re.match(key, match)][0], match))
+
+        return tokens
+
+    def _match(self, tokens: List[Token], target_rule: str):
         # print('match', tokens, target_rule)
 
         if tokens and tokens[0].name == target_rule:  # This is a token, not a rule.

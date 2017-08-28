@@ -30,7 +30,7 @@ class SimpleMultiplicationTests(unittest.TestCase):
     def runTest(self):
         self.assertEqual(evaluate('1 * 1'), 1.0)
         self.assertEqual(evaluate('2 * 3'), 6.0)
-        self.assertEqual(evaluate('( 2 * 3 ) ( 2 * 3 )'), 36.0)
+        self.assertEqual(evaluate('(2 * 3) (2 * 3)'), 36.0)
 
 
 class SimpleDivisionTests(unittest.TestCase):
@@ -50,7 +50,8 @@ class SimplePowerTests(unittest.TestCase):
 class SimpleParenthesisTests(unittest.TestCase):
     def runTest(self):
         self.assertEqual(evaluate('( 1 + 2 ) * 3'), 9.0)
-        self.assertEqual(evaluate('( 1 + 2 ) ^ ( 2 * 3 - 2 )'), 81.0)
+        self.assertEqual(evaluate('( 1 + 2 ) ^ (2 * 3 - 2)'), 81.0)
+        self.assertEqual(evaluate('2 (1 + 1)'), 4.0)
 
 
 class CombinationTests(unittest.TestCase):
