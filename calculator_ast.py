@@ -19,7 +19,7 @@ token_map = {
 rules_map = OrderedDict((
     ('num', ('NUM', 'LPA add RPA')),
     ('add', ('mul ADD add', 'mul')),
-    ('mul', ('pow MUL mul', 'pow')),
+    ('mul', ('pow MUL mul', 'pow mul', 'pow')),
     ('pow', ('num POW pow', 'num'))
 ))
 
@@ -96,6 +96,12 @@ class Ast:
                 ast.matched[1] = ast.matched[2].matched[1]
                 ast.matched[2] = ast.matched[2].matched[2]
                 return self._fixed(ast)
+
+        # This adds the multiplication symbol to implicit multiplication.
+        if ast.name == 'mul' and len(ast.matched) == 2:
+            ast.matched.append(ast.matched[1])
+            ast.matched[1] = Token('MUL', '*')
+            return self._fixed(ast)
 
         if isinstance(ast, RuleMatch):
             for i in range(len(ast.matched)):

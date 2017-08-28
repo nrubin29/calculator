@@ -30,6 +30,7 @@ class SimpleMultiplicationTests(unittest.TestCase):
     def runTest(self):
         self.assertEqual(evaluate('1 * 1'), 1.0)
         self.assertEqual(evaluate('2 * 3'), 6.0)
+        self.assertEqual(evaluate('( 2 * 3 ) ( 2 * 3 )'), 36.0)
 
 
 class SimpleDivisionTests(unittest.TestCase):
