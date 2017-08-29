@@ -1,3 +1,8 @@
+"""
+A calculator implemented with an Abstract Syntax Tree (AST).
+"""
+
+import copy
 import re
 from collections import namedtuple, OrderedDict
 from typing import List, Dict
@@ -8,29 +13,31 @@ Token = namedtuple('Token', ('name', 'value'))
 RuleMatch = namedtuple('RuleMatch', ('name', 'matched'))
 
 token_map = OrderedDict((
-    (r'-?\d+(?:\.\d+)?',    'NUM'),
-    (r'sqrt',               'OPR'),
-    (r'exp',                'OPR'),
-    (r'[a-zA-Z_]+',         'IDT'),
-    (r'=',                  'EQL'),
-    (r'\+',                 'ADD'),
-    (r'-',                  'ADD'),
-    (r'\*\*',               'POW'),
-    (r'\*',                 'MUL'),
-    (r'\/',                 'MUL'),
-    (r'%',                  'MUL'),
-    (r'\^',                 'POW'),
-    (r'\(',                 'LPA'),
-    (r'\)',                 'RPA')
+    (r'\d+(?:\.\d+)?',    'NUM'),
+    (r'sqrt',             'OPR'),
+    (r'exp',              'OPR'),
+    (r'[a-zA-Z_]+',       'IDT'),
+    (r'=',                'EQL'),
+    (r'\+',               'ADD'),
+    (r'-',                'ADD'),
+    (r'\*\*',             'POW'),
+    (r'\*',               'MUL'),
+    (r'\/',               'MUL'),
+    (r'%',                'MUL'),
+    (r'\^',               'POW'),
+    (r'\(',               'LPA'),
+    (r'\)',               'RPA')
 ))
 
 rules_map = OrderedDict((
+    ('idt', ('IDT EQL add', 'add')),
+    ('add', ('mul ADD add', 'mui', 'mul')),
+    ('mui', ('pow mul',)),
+    ('mul', ('pow MUL mul', 'pow')),
+    ('pow', ('opr POW pow', 'opr')),
+    ('opr', ('OPR LPA add RPA', 'neg')),
+    ('neg', ('ADD num', 'ADD opr', 'num')),
     ('num', ('NUM', 'IDT', 'LPA add RPA')),
-    ('idt', ('IDT EQL opr', 'add')),
-    ('opr', ('OPR LPA add RPA', 'idt')),
-    ('add', ('mul ADD add', 'mul')),
-    ('mul', ('pow MUL mul', 'pow mul', 'pow')),
-    ('pow', ('num POW pow', 'num'))
 ))
 
 left_assoc = {
@@ -39,11 +46,12 @@ left_assoc = {
 }
 
 calc_map = {
-    'num': lambda tokens: float(tokens[0].value),
     'add': lambda tokens: float(tokens[0].value) + float(tokens[2].value) if tokens[1].value == '+' else float(tokens[0].value) - float(tokens[2].value),
     'mul': lambda tokens: float(tokens[0].value) * float(tokens[2].value) if tokens[1].value == '*' else float(tokens[0].value) / float(tokens[2].value) if tokens[1].value == '/' else float(tokens[0].value) % float(tokens[2].value),
     'pow': lambda tokens: float(tokens[0].value) ** float(tokens[2].value),
-    'opr': lambda tokens: {'sqrt': math.sqrt, 'exp': math.exp}[tokens[0].value](tokens[1].value)
+    'opr': lambda tokens: {'sqrt': math.sqrt, 'exp': math.exp}[tokens[0].value](tokens[1].value),
+    'neg': lambda tokens: float(tokens[1].value) if tokens[0].value == '+' else -float(tokens[1].value),
+    'num': lambda tokens: float(tokens[0].value),
 }
 
 
@@ -53,7 +61,7 @@ class Calculator:
 
     def evaluate(self, eqtn: str):
         for e in eqtn.split(';'):
-            ast = Ast(self._match(self._tokenize(e), 'opr')[0])
+            ast = Ast(self._match(self._tokenize(e), 'idt')[0])
             print(ast)
             res = ast.evaluate(self.vrs)
 
@@ -125,11 +133,10 @@ class Ast:
                 ast.matched[2] = ast.matched[2].matched[2]
                 return self._fixed(ast)
 
-        # This adds the multiplication symbol to implicit multiplication.
-        if ast.name == 'mul' and len(ast.matched) == 2:
-            ast.matched.append(ast.matched[1])
-            ast.matched[1] = Token('MUL', '*')
-            return self._fixed(ast)
+        # This converts implicit multiplication to regular multiplication.
+        if ast.name == 'mui':
+            m = RuleMatch('mul', [ast.matched[0], Token('MUL', '*'), ast.matched[1]])
+            return self._fixed(m)
 
         # This removes the parentheses from an operation.
         if ast.name == 'opr' and len(ast.matched) == 4:
@@ -144,13 +151,12 @@ class Ast:
 
         return ast
 
-    def evaluate(self, vrs: Dict[str, float]):
+    def evaluate(self, vrs: Dict[str, RuleMatch]):
         return self._evaluate(self.ast, vrs)
 
-    def _evaluate(self, ast, vrs: Dict[str, float]):
+    def _evaluate(self, ast, vrs: Dict[str, RuleMatch]):
         if ast.name == 'idt':
-            vrs[ast.matched[0].value] = self._evaluate(ast.matched[2], vrs).value
-            return vrs
+            return {ast.matched[0].value: ast.matched[2]}
 
         for i in range(len(ast.matched)):
             token = ast.matched[i]
@@ -159,7 +165,11 @@ class Ast:
                 ast.matched[i] = self._evaluate(token, vrs)
                 return self._evaluate(ast, vrs)
         else:
-            return Token('NUM', calc_map[ast.name](ast.matched) if ast.matched[0].name != 'IDT' else vrs[ast.matched[0].value])
+            if ast.matched[0].name == 'IDT':
+                return self._evaluate(copy.deepcopy(vrs[ast.matched[0].value]), vrs)
+
+            else:
+                return Token('NUM', calc_map[ast.name](ast.matched))
 
     def infix(self):
         # TODO: Add parentheses where needed.

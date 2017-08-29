@@ -1,3 +1,7 @@
+"""
+A calculator implemented with the Shunting Yard Algorithm. The AST version is far superior and this version should be disregarded.
+"""
+
 import re
 from collections import namedtuple
 from operator import add, sub, mul, truediv, pow, mod

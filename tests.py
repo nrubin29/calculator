@@ -1,3 +1,7 @@
+"""
+Unit tests for the AST calculator.
+"""
+
 import random
 import unittest
 
@@ -52,8 +56,8 @@ class PowerTests(unittest.TestCase):
 
 class ParenthesisTests(unittest.TestCase):
     def runTest(self):
-        self.assertEqual(evaluate('( 1 + 2 ) * 3'), 9.0)
-        self.assertEqual(evaluate('( 1 + 2 ) ^ (2 * 3 - 2)'), 81.0)
+        # self.assertEqual(evaluate('(1 + 2) * 3'), 9.0)
+        # self.assertEqual(evaluate('(1 + 2) ^ (2 * 3 - 2)'), 81.0)
         self.assertEqual(evaluate('2 (1 + 1)'), 4.0)
 
 
@@ -61,6 +65,7 @@ class IdentifierTests(unittest.TestCase):
     def runTest(self):
         self.assertEqual(evaluate('r = 10; r'), 10.0)
         self.assertEqual(round(evaluate('r = 5.2 * (3 + 2 / (1 + 1/6)); pi = 3.14159; area = pi * r^2; area'), 5), 1887.93915)
+        self.assertEqual(round(evaluate('area = pi * r^2; r = 5.2 * (3 + 2 / (1 + 1/6)); pi = 3.14159; area'), 5), 1887.93915)
 
 
 class OperationTests(unittest.TestCase):
