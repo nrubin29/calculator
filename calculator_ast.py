@@ -5,6 +5,7 @@ A calculator implemented with an Abstract Syntax Tree (AST).
 import copy
 import re
 from collections import namedtuple, OrderedDict
+from enum import Enum
 from typing import List, Dict
 
 import math
@@ -13,24 +14,31 @@ Token = namedtuple('Token', ('name', 'value'))
 RuleMatch = namedtuple('RuleMatch', ('name', 'matched'))
 
 token_map = OrderedDict((
-    (r'\d+(?:\.\d+)?',    'NUM'),
-    (r'sqrt',             'OPR'),
-    (r'exp',              'OPR'),
-    (r'[a-zA-Z_]+',       'IDT'),
-    (r'=',                'EQL'),
-    (r'\+',               'ADD'),
-    (r'-',                'ADD'),
-    (r'\*\*',             'POW'),
-    (r'\*',               'MUL'),
-    (r'\/',               'MUL'),
-    (r'%',                'MUL'),
-    (r'\^',               'POW'),
-    (r'\(',               'LPA'),
-    (r'\)',               'RPA')
+    (r'\d+(?:\.\d+)?',      'NUM'),
+    (r'sqrt',               'OPR'),
+    (r'exp',                'OPR'),
+    (r'[a-zA-Z_]+',         'IDT'),
+    (r'=',                  'EQL'),
+    (r'\+',                 'ADD'),
+    (r'-',                  'ADD'),
+    (r'\*\*',               'POW'),
+    (r'\*',                 'MUL'),
+    (r'\/',                 'MUL'),
+    (r'%',                  'MUL'),
+    (r'\^',                 'POW'),
+    (r'\(',                 'LPA'),
+    (r'\)',                 'RPA'),
+    (r'\[',                 'LBR'),
+    (r'\]',                 'RBR'),
+    (r'\,',                 'CMA'),
+    (r'\|',                 'PPE')
 ))
 
 rules_map = OrderedDict((
-    ('idt', ('IDT EQL add', 'add')),
+    ('idt', ('IDT EQL add', 'mat')),
+    ('mat', ('LBR mbd RBR', 'add')),
+    ('mbd', ('mrw PPE mbd', 'mrw', 'add')),
+    ('mrw', ('add CMA mrw', 'add')),
     ('add', ('mul ADD add', 'mui', 'mul')),
     ('mui', ('pow mul',)),
     ('mul', ('pow MUL mul', 'pow')),
@@ -45,13 +53,25 @@ left_assoc = {
     'MUL': 'mul',
 }
 
+
+class Type(Enum):
+    Number = 0
+    Matrix = 1
+
+Value = namedtuple('Value', ('type', 'value'))
+value_map = {
+    'NUM': Type.Number,
+    'MAT': Type.Matrix
+}
+
 calc_map = {
-    'add': lambda tokens: float(tokens[0].value) + float(tokens[2].value) if tokens[1].value == '+' else float(tokens[0].value) - float(tokens[2].value),
-    'mul': lambda tokens: float(tokens[0].value) * float(tokens[2].value) if tokens[1].value == '*' else float(tokens[0].value) / float(tokens[2].value) if tokens[1].value == '/' else float(tokens[0].value) % float(tokens[2].value),
-    'pow': lambda tokens: float(tokens[0].value) ** float(tokens[2].value),
-    'opr': lambda tokens: {'sqrt': math.sqrt, 'exp': math.exp}[tokens[0].value](tokens[1].value),
-    'neg': lambda tokens: float(tokens[1].value) if tokens[0].value == '+' else -float(tokens[1].value),
-    'num': lambda tokens: float(tokens[0].value),
+    'add': lambda tokens: Token('NUM', float(tokens[0].value) + float(tokens[2].value) if tokens[1].value == '+' else float(tokens[0].value) - float(tokens[2].value)),
+    'mul': lambda tokens: Token('NUM', float(tokens[0].value) * float(tokens[2].value) if tokens[1].value == '*' else float(tokens[0].value) / float(tokens[2].value) if tokens[1].value == '/' else float(tokens[0].value) % float(tokens[2].value)),
+    'pow': lambda tokens: Token('NUM', float(tokens[0].value) ** float(tokens[2].value)),
+    'opr': lambda tokens: Token('NUM', {'sqrt': math.sqrt, 'exp': math.exp}[tokens[0].value](tokens[1].value)),
+    'neg': lambda tokens: Token('NUM', float(tokens[1].value) if tokens[0].value == '+' else -float(tokens[1].value)),
+    'num': lambda tokens: Token('NUM', float(tokens[0].value)),
+    'mat': lambda tokens: Token('MAT', [float(tokens[1].value)])
 }
 
 
@@ -65,8 +85,8 @@ class Calculator:
             print(ast)
             res = ast.evaluate(self.vrs)
 
-            if isinstance(res, Token):
-                return res.value
+            if isinstance(res, Value):
+                return res
 
             elif isinstance(res, dict):
                 self.vrs.update(res)
@@ -152,7 +172,12 @@ class Ast:
         return ast
 
     def evaluate(self, vrs: Dict[str, RuleMatch]):
-        return self._evaluate(self.ast, vrs)
+        res = self._evaluate(self.ast, vrs)
+
+        if isinstance(res, Token):
+            return Value(value_map[res.name], res.value)
+
+        return res
 
     def _evaluate(self, ast, vrs: Dict[str, RuleMatch]):
         if ast.name == 'idt':
@@ -169,7 +194,7 @@ class Ast:
                 return self._evaluate(copy.deepcopy(vrs[ast.matched[0].value]), vrs)
 
             else:
-                return Token('NUM', calc_map[ast.name](ast.matched))
+                return calc_map[ast.name](ast.matched)
 
     def infix(self):
         # TODO: Add parentheses where needed.

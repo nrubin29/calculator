@@ -13,7 +13,7 @@ def evaluate(eqtn: str):
     calc = Calculator()
     res = calc.evaluate(eqtn)
     print(res)
-    return res
+    return res.value
 
 
 class AdditionTests(unittest.TestCase):
@@ -83,6 +83,13 @@ class CombinationTests(unittest.TestCase):
         self.assertEqual(evaluate('1 + 2 - 3 ^ 4 * 5'), -402.0)
         self.assertEqual(evaluate('2 ^ 2 * 3 ^ 2'), 36.0)
         self.assertEqual(evaluate('a = 2; b = 3; 3*(2 + a + 5*b*2 + 3)'), 111.0)
+
+
+class MatrixTests(unittest.TestCase):
+    def runTest(self):
+        # self.assertEqual(evaluate('[1,2]'), [1.0])
+        # self.assertEqual(evaluate('[1,2|4,5]'), [1.0])
+        self.assertEqual(evaluate('[1,0,0|0,1,0|0,0,1]'), [1.0])
 
 
 class RandomTests(unittest.TestCase):
