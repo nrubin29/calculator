@@ -16,6 +16,18 @@ def evaluate(eqtn: str):
     return res.value
 
 
+class InvalidEquationTests(unittest.TestCase):
+    def runTest(self):
+        with self.assertRaises(Exception):
+            evaluate('$')
+
+        with self.assertRaises(Exception):
+            evaluate('1 +')
+
+        with self.assertRaises(Exception):
+            evaluate('1 * / 2')
+
+
 class AdditionTests(unittest.TestCase):
     def runTest(self):
         self.assertEqual(evaluate('1 + 2'), 3.0)
