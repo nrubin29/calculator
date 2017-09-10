@@ -1,75 +1,69 @@
 """
-A calculator implemented with the Shunting Yard Algorithm. The AST version is far superior and this version should be disregarded.
+This file contains the Calculator class, which accept an equation and generates an AST, and also keeps track of variables.
 """
+from typing import List
 
 import re
-from collections import namedtuple
-from operator import add, sub, mul, truediv, pow, mod
 
-Operator = namedtuple('Operator', ('symbol', 'function', 'precedence', 'associativity'))
+from ast import Ast
+from common import Value, Token, token_map, rules_map, RuleMatch
 
-operators = {
-    '+': Operator('+', add, 2, 'l'),
-    '-': Operator('-', sub, 2, 'l'),
-    '*': Operator('*', mul, 3, 'l'),
-    '/': Operator('/', truediv, 3, 'l'),
-    '%': Operator('%', mod, 3, 'l'),
-    '^': Operator('^', pow, 4, 'r'),
-    '(': Operator('(', None, 5, ''),
-    ')': Operator(')', None, 5, '')
-}
 
-expr = r'[\+\-\*\/|\^\(\)]|\d+'
-eqtn = '3 + 4 * 2 / ( 1 - 5 ) ^ 2 ^ 3'  # => 3.0001220703  # input()
+class Calculator:
+    def __init__(self):
+        self.vrs = {}
 
-rpn = []
-ops = []
+    def evaluate(self, eqtn: str) -> Value:
+        for e in eqtn.split(';'):
+            root, remaining_tokens = self._match(self._tokenize(e), 'idt')
 
-for token in re.findall(expr, eqtn):
-    if re.match(r'\d+', token):
-        rpn.append(token)
+            if remaining_tokens:
+                raise Exception('Invalid equation (bad format)')
 
-    elif token is '(':
-        ops.append(token)
+            ast = Ast(root)
+            print(ast)
+            res = ast.evaluate(self.vrs)
 
-    elif token is ')':
-        for op in reversed(list(map(operators.__getitem__, ops))):
-            if op.symbol is not '(':
-                rpn.append(ops.pop())
+            if isinstance(res, Value):
+                return res
 
+            elif isinstance(res, dict):
+                self.vrs.update(res)
+
+    def _tokenize(self, eqtn: str) -> List[Token]:
+        tokens = []
+
+        if re.sub('(' + ')|('.join(token_map.keys()) + ')', '', 'eqtn').strip():
+            raise Exception('Invalid equation (illegal tokens)')
+
+        for match in re.findall('(' + ')|('.join(token_map.keys()) + ')', eqtn):
+            entry = next(filter(lambda entry: entry[1] != '', enumerate(match)), None)
+            tokens.append(Token(list(token_map.values())[entry[0]], entry[1]))
+
+        return tokens
+
+    def _match(self, tokens: List[Token], target_rule: str):
+        # print('match', tokens, target_rule)
+
+        if tokens and tokens[0].name == target_rule:  # This is a token, not a rule.
+            return tokens[0], tokens[1:]
+
+        for pattern in rules_map.get(target_rule, ()):
+            # print('trying pattern', pattern)
+
+            remaining_tokens = tokens
+            matched = []
+
+            for pattern_token in pattern.split():
+                # print('checking pattern_token', pattern_token)
+                m, remaining_tokens = self._match(remaining_tokens, pattern_token)
+
+                if not m:
+                    # print('failed pattern match')
+                    break
+
+                matched.append(m)
             else:
-                break
-
-        ops.pop()
-
-    else:
-        for op in reversed(list(map(operators.__getitem__, ops))):
-            if op.symbol is not '(' and op.precedence >= operators[token].precedence and op.associativity is 'l':
-                rpn.append(ops.pop())
-
-            else:
-                break
-
-        ops.append(token)
-
-    # print('{:20s}|{:20s}|{:20s}'.format(token, ' '.join(rpn), ' '.join(ops)).strip())
-
-# print()
-
-while len(ops) > 0:
-    rpn.append(ops.pop())
-
-print(' '.join(rpn))
-
-output = []
-
-while len(rpn) > 0:
-    token = rpn.pop(0)
-    if re.match(r'\d+', token):
-        output.append(int(token))
-
-    else:
-        b, a = output.pop(), output.pop()
-        output.append(operators[token].function(a, b))
-
-print(output[0])
+                # Success!
+                return RuleMatch(target_rule, matched), remaining_tokens
+        return None, None

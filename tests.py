@@ -5,7 +5,7 @@ Unit tests for the AST calculator.
 import random
 import unittest
 
-from calculator_ast import Calculator
+from calculator import Calculator
 
 
 def evaluate(eqtn: str):
@@ -99,9 +99,10 @@ class CombinationTests(unittest.TestCase):
 
 class MatrixTests(unittest.TestCase):
     def runTest(self):
-        # self.assertEqual(evaluate('[1,2]'), [1.0])
-        # self.assertEqual(evaluate('[1,2|4,5]'), [1.0])
-        self.assertEqual(evaluate('[1,0,0|0,1,0|0,0,1]'), [1.0])
+        self.assertEqual(evaluate('[1,2]'), [[1.0, 2.0]])
+        self.assertEqual(evaluate('[1,2|4,5]'), [[1.0, 2.0], [4.0, 5.0]])
+        self.assertEqual(evaluate('[1,0,0|0,1,0|0,0,1]'), [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [[0.0, 0.0, 1.0]]])
+        self.assertEqual(evaluate('[1,0,0,0|0,1,0,0|0,0,1,0|0,0,0,1]'), [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [[0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]])
 
 
 class RandomTests(unittest.TestCase):
