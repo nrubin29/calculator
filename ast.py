@@ -40,14 +40,18 @@ class Ast:
             return self._fixed(RuleMatch('mul', [ast.matched[0], Token('MUL', '*'), ast.matched[1]]))
 
         # This flattens matrix rows into parent matrix rows.
-        if ast.name == 'mrw' and ast.matched[1].name == 'mrw':
-            ast.matched[1:] = ast.matched[1].matched
-            return self._fixed(ast)
+        if ast.name == 'mrw':
+            for i in range(len(ast.matched) - 1, -1, -1):
+                if ast.matched[i].name == 'mrw':
+                    ast.matched[i:] = ast.matched[i].matched
+                    return self._fixed(ast)
 
         # This flattens matrix bodies into parent matrix bodies.
-        if ast.name == 'mbd' and len(ast.matched) > 1 and ast.matched[1].name == 'mbd':
-            ast.matched[1:] = ast.matched[1].matched
-            return self._fixed(ast)
+        if ast.name == 'mbd':
+            for i in range(len(ast.matched) - 1, -1, -1):
+                if ast.matched[i].name == 'mbd':
+                    ast.matched[i:] = ast.matched[i].matched
+                    return self._fixed(ast)
 
         if isinstance(ast, RuleMatch):
             for i in range(len(ast.matched)):

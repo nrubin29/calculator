@@ -101,8 +101,18 @@ class MatrixTests(unittest.TestCase):
     def runTest(self):
         self.assertEqual(evaluate('[1,2]'), [[1.0, 2.0]])
         self.assertEqual(evaluate('[1,2|4,5]'), [[1.0, 2.0], [4.0, 5.0]])
-        self.assertEqual(evaluate('[1,0,0|0,1,0|0,0,1]'), [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [[0.0, 0.0, 1.0]]])
-        self.assertEqual(evaluate('[1,0,0,0|0,1,0,0|0,0,1,0|0,0,0,1]'), [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [[0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]])
+        self.assertEqual(evaluate('[1,0,0|0,1,0|0,0,1]'), [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+        self.assertEqual(evaluate('[1,0,0,0|0,1,0,0|0,0,1,0|0,0,0,1]'), [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])
+
+        for _ in range(10):
+            mat = []
+
+            for i in range(10):
+                mat.append([random.randint(1, 100) for _ in range(10)])
+
+            mat_str = '[' + '|'.join([','.join(map(str, line)) for line in mat]) + ']'
+
+            self.assertEqual(evaluate(mat_str), mat)
 
 
 class RandomTests(unittest.TestCase):
