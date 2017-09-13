@@ -20,7 +20,7 @@ def pow(tokens: List[Token]) -> Token:
 
 
 def opr(tokens: List[Token]) -> Token:
-    return Token('NUM', {'sqrt': math.sqrt, 'exp': math.exp}[tokens[0].value](tokens[1].value))
+    return Token('NUM', {'sqrt': math.sqrt, 'exp': math.exp, 'det': det}[tokens[0].value](tokens[1].value))
 
 
 def neg(tokens: List[Token]) -> Token:
@@ -41,6 +41,18 @@ def mbd(tokens: List[Token]) -> Token:
 
 def mat(tokens: List[Token]) -> Token:
     return tokens[0]
+
+
+def det(matrix: List[List[float]]) -> float:
+    if len(matrix) is 2:
+        return (matrix[0][0] * matrix[1][1]) - (matrix[0][1] * matrix[1][0])
+
+    cofactors = []
+
+    for col in range(len(matrix)):
+        cofactors.append(det([matrix[row][0:col] + matrix[row][col + 1:] for row in range(1, len(matrix))]) * matrix[0][col] * (1 if col % 2 is 0 else -1))
+
+    return sum(cofactors)
 
 
 calc_map = {

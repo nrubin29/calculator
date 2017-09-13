@@ -12,6 +12,7 @@ token_map = OrderedDict((
     (r'\d+(?:\.\d+)?',      'NUM'),
     (r'sqrt',               'OPR'),
     (r'exp',                'OPR'),
+    (r'det',                'OPR'),
     (r'[a-zA-Z_]+',         'IDT'),
     (r'=',                  'EQL'),
     (r'\+',                 'ADD'),
@@ -40,7 +41,7 @@ rules_map = OrderedDict((
     ('mui', ('pow mul',)),
     ('mul', ('pow MUL mul', 'pow')),
     ('pow', ('opr POW pow', 'opr')),
-    ('opr', ('OPR LPA add RPA', 'neg')),
+    ('opr', ('OPR LPA mat RPA', 'neg')),
     ('neg', ('ADD num', 'ADD opr', 'num')),
     ('num', ('NUM', 'IDT', 'LPA add RPA')),
 ))

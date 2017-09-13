@@ -100,19 +100,18 @@ class CombinationTests(unittest.TestCase):
 class MatrixTests(unittest.TestCase):
     def runTest(self):
         self.assertEqual(evaluate('[1,2]'), [[1.0, 2.0]])
+        self.assertEqual(evaluate('det([1,2,3|4,5,6|7,8,8])'), 3.0)
+
         self.assertEqual(evaluate('[1,2|4,5]'), [[1.0, 2.0], [4.0, 5.0]])
         self.assertEqual(evaluate('[1,0,0|0,1,0|0,0,1]'), [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+
         self.assertEqual(evaluate('[1,0,0,0|0,1,0,0|0,0,1,0|0,0,0,1]'), [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])
+        self.assertEqual(evaluate('det([1,3,5,7|2,4,6,8|9,7,5,4|8,6,5,9])'), 2.0)
 
-        for _ in range(10):
-            mat = []
-
-            for i in range(10):
-                mat.append([random.randint(1, 100) for _ in range(10)])
-
-            mat_str = '[' + '|'.join([','.join(map(str, line)) for line in mat]) + ']'
-
-            self.assertEqual(evaluate(mat_str), mat)
+        # for _ in range(10):
+        #     mat = [[random.randint(1, 100) for _ in range(10)] for _ in range(10)]
+        #     mat_str = '[' + '|'.join([','.join(map(str, line)) for line in mat]) + ']'
+        #     self.assertEqual(evaluate(mat_str), mat)
 
 
 class RandomTests(unittest.TestCase):
