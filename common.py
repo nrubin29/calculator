@@ -4,9 +4,24 @@ This file contains important information for the calculator.
 
 from collections import namedtuple, OrderedDict
 from enum import Enum
+from typing import List
 
 Token = namedtuple('Token', ('name', 'value'))
-RuleMatch = namedtuple('RuleMatch', ('name', 'matched'))
+Value = namedtuple('Value', ('type', 'value'))
+
+
+class RuleMatch:
+    def __init__(self, name: str, matched: List[Token], value: Value = None):
+        self.name = name
+        self.matched = matched
+        self.value = value
+
+    def __str__(self):
+        return 'RuleMatch(' + ', '.join(map(str, [self.name, self.matched, self.value])) + ')'
+
+    def __repr__(self):
+        return str(self)
+
 
 token_map = OrderedDict((
     (r'\d+(?:\.\d+)?',      'NUM'),
@@ -55,10 +70,11 @@ left_assoc = {
 class Type(Enum):
     Number = 0
     Matrix = 1
+    MatrixRow = 2
 
 
-Value = namedtuple('Value', ('type', 'value'))
 value_map = {
     'NUM': Type.Number,
-    'MAT': Type.Matrix
+    'MAT': Type.Matrix,
+    'MRW': Type.MatrixRow
 }

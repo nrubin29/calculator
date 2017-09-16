@@ -21,10 +21,11 @@ class Calculator:
                 raise Exception('Invalid equation (bad format)')
 
             ast = Ast(root)
-            print(ast)
             res = ast.evaluate(self.vrs)
 
             if isinstance(res, Value):
+                ast.ast.value = res
+                print(ast)
                 return res
 
             elif isinstance(res, dict):
@@ -65,5 +66,5 @@ class Calculator:
                 matched.append(m)
             else:
                 # Success!
-                return RuleMatch(target_rule, matched), remaining_tokens
+                return RuleMatch(target_rule, matched, None), remaining_tokens
         return None, None

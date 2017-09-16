@@ -60,28 +60,25 @@ class Ast:
         return ast
 
     def evaluate(self, vrs: Dict[str, RuleMatch]):
-        res = self._evaluate(self.ast, vrs)
+        return self._evaluate(self.ast, vrs)
 
-        if isinstance(res, Token):
-            return Value(value_map[res.name], res.value)
-
-        return res
-
-    def _evaluate(self, ast, vrs: Dict[str, RuleMatch]) -> Union[Dict[str, RuleMatch], Token]:
+    def _evaluate(self, ast, vrs: Dict[str, RuleMatch]):  # -> Union[Dict[str, RuleMatch], Token]:
         if ast.name == 'idt':
             return {ast.matched[0].value: ast.matched[1]}
 
-        for i in range(len(ast.matched)):
-            token = ast.matched[i]
+        for token in ast.matched:
+            if isinstance(token, RuleMatch) and not token.value:
+                token.value = self._evaluate(token, vrs)
 
-            if isinstance(token, RuleMatch):
-                ast.matched[i] = self._evaluate(token, vrs)
-                return self._evaluate(ast, vrs)
+        if any(map(lambda t: isinstance(t, RuleMatch), ast.matched)):
+            return calc_map[ast.name](ast.matched)
+
         else:
             if ast.matched[0].name == 'IDT':
                 return self._evaluate(copy.deepcopy(vrs[ast.matched[0].value]), vrs)
 
             else:
+                # At this point, ast.name will _always_ be `num`.
                 return calc_map[ast.name](ast.matched)
 
     def infix(self) -> str:
@@ -95,10 +92,9 @@ class Ast:
         return self._str(self.ast)  # + '\n>> ' + self.infix()
 
     def _str(self, ast, depth=0) -> str:
-        output = (('\t' * depth) + ast.name) + '\n'
+        output = (('\t' * depth) + ast.name + ' = ' + str(ast.value.value)) + '\n'
 
         for matched in ast.matched:
-            # print('**matched', matched)
             if isinstance(matched, RuleMatch) and matched.matched:
                 output += self._str(matched, depth + 1)
 

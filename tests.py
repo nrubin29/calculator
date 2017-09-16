@@ -12,7 +12,7 @@ def evaluate(eqtn: str):
     print(eqtn)
     calc = Calculator()
     res = calc.evaluate(eqtn)
-    print(res)
+    print(res, '\n' + '-' * 50)
     return res.value
 
 

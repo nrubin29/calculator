@@ -2,45 +2,49 @@
 This file contains methods to handle calculation of all the rules.
 """
 import math
-from typing import List
+import operator
+from typing import List, Union
 
-from common import Token
-
-
-def add(tokens: List[Token]) -> Token:
-    return Token('NUM', float(tokens[0].value) + float(tokens[2].value) if tokens[1].value == '+' else float(tokens[0].value) - float(tokens[2].value))
+from common import Token, Value, Type, RuleMatch
 
 
-def mul(tokens: List[Token]) -> Token:
-    return Token('NUM', float(tokens[0].value) * float(tokens[2].value) if tokens[1].value == '*' else float(tokens[0].value) / float(tokens[2].value) if tokens[1].value == '/' else float(tokens[0].value) % float(tokens[2].value))
+def add(tokens: List[Union[Token, Value, RuleMatch]]) -> Value:
+    return Value(Type.Number, {'+': operator.add, '-': operator.sub}[tokens[1].value](tokens[0].value.value, tokens[2].value.value))
 
 
-def pow(tokens: List[Token]) -> Token:
-    return Token('NUM', float(tokens[0].value) ** float(tokens[2].value))
+def mul(tokens: List[Union[Token, Value, RuleMatch]]) -> Value:
+    return Value(Type.Number, {'*': operator.mul, '/': operator.truediv, '%': operator.mod}[tokens[1].value](tokens[0].value.value, tokens[2].value.value))
 
 
-def opr(tokens: List[Token]) -> Token:
-    return Token('NUM', {'sqrt': math.sqrt, 'exp': math.exp, 'det': det}[tokens[0].value](tokens[1].value))
+def pow(tokens: List[Union[Token, Value, RuleMatch]]) -> Value:
+    return Value(Type.Number, tokens[0].value.value ** tokens[2].value.value)
 
 
-def neg(tokens: List[Token]) -> Token:
-    return Token('NUM', float(tokens[1].value) if tokens[0].value == '+' else -float(tokens[1].value))
+def opr(tokens: List[Union[Token, Value, RuleMatch]]) -> Value:
+    return Value(Type.Number, {'sqrt': math.sqrt, 'exp': math.exp, 'det': det}[tokens[0].value](tokens[1].value.value))
 
 
-def num(tokens: List[Token]) -> Token:
-    return Token('NUM', float(tokens[0].value))
+def neg(tokens: List[Union[Token, Value, RuleMatch]]) -> Value:
+    return Value(Type.Number, tokens[1].value.value if tokens[0].value == '+' else -tokens[1].value.value)
 
 
-def mrw(tokens: List[Token]) -> Token:
-    return Token('MRW', list(map(lambda t: float(t.value), tokens)))
+def num(tokens: List[Union[Token, Value, RuleMatch]]) -> Value:
+    if isinstance(tokens[0], RuleMatch):
+        return tokens[0].value
+
+    return Value(Type.Number, float(tokens[0].value))
 
 
-def mbd(tokens: List[Token]) -> Token:
-    return Token('MAT', list(map(lambda t: t.value, tokens)))
+def mrw(tokens: List[Union[Token, Value, RuleMatch]]) -> Value:
+    return Value(Type.MatrixRow, list(map(lambda t: t.value.value, tokens)))
 
 
-def mat(tokens: List[Token]) -> Token:
-    return tokens[0]
+def mbd(tokens: List[Union[Token, Value, RuleMatch]]) -> Value:
+    return Value(Type.Matrix, list(map(lambda t: t.value.value, tokens)))
+
+
+def mat(tokens: List[Union[Token, Value, RuleMatch]]) -> Value:
+    return tokens[0].value
 
 
 def det(matrix: List[List[float]]) -> float:
