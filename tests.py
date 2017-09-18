@@ -103,10 +103,24 @@ class MatrixTests(unittest.TestCase):
         self.assertEqual(evaluate('det([1,2,3|4,5,6|7,8,8])'), 3.0)
 
         self.assertEqual(evaluate('[1,2|4,5]'), [[1.0, 2.0], [4.0, 5.0]])
+        self.assertEqual(evaluate('trans([1,2|4,5])'), [[1.0, 4.0], [2.0, 5.0]])
+
+        self.assertEqual(evaluate('inv([1,4,7|3,0,5|-1,9,11])'), [[45/8, -19/8, -5/2], [19/4, -9/4, -2], [-27/8, 13/8, 3/2]])
+
         self.assertEqual(evaluate('[1,0,0|0,1,0|0,0,1]'), [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
 
         self.assertEqual(evaluate('[1,0,0,0|0,1,0,0|0,0,1,0|0,0,0,1]'), [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])
         self.assertEqual(evaluate('det([1,3,5,7|2,4,6,8|9,7,5,4|8,6,5,9])'), 2.0)
+
+        self.assertEqual(evaluate('cof([1,2,3|0,4,5|1,0,6])'), [[24, 5, -4], [-12, 3, 2], [-2, -5, 4]])
+
+        # Since we have floating-point issues, we have to test each value individually.
+        calc = evaluate('inv([1,2,3|0,4,5|1,0,6])')
+        ans = [[12/11, -6/11, -1/11], [5/22, 3/22, -5/22], [-2/11, 1/11, 2/11]]
+
+        for row in range(len(calc)):
+            for col in range(len(calc)):
+                self.assertAlmostEqual(calc[row][col], ans[row][col])
 
         # for _ in range(10):
         #     mat = [[random.randint(1, 100) for _ in range(10)] for _ in range(10)]

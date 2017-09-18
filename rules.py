@@ -1,6 +1,7 @@
 """
 This file contains methods to handle calculation of all the rules.
 """
+import copy
 import math
 import operator
 from typing import List, Union
@@ -21,7 +22,7 @@ def pow(tokens: List[Union[Token, Value, RuleMatch]]) -> Value:
 
 
 def opr(tokens: List[Union[Token, Value, RuleMatch]]) -> Value:
-    return Value(Type.Number, {'sqrt': math.sqrt, 'exp': math.exp, 'det': det}[tokens[0].value](tokens[1].value.value))
+    return Value(Type.Number, {'sqrt': math.sqrt, 'exp': math.exp, 'det': det, 'trans': trans, 'cof': cof, 'adj': adj, 'inv': inv}[tokens[0].value](tokens[1].value.value))
 
 
 def neg(tokens: List[Union[Token, Value, RuleMatch]]) -> Value:
@@ -57,6 +58,39 @@ def det(matrix: List[List[float]]) -> float:
         cofactors.append(det([matrix[row][0:col] + matrix[row][col + 1:] for row in range(1, len(matrix))]) * matrix[0][col] * (1 if col % 2 is 0 else -1))
 
     return sum(cofactors)
+
+
+def trans(matrix: List[List[float]]) -> List[List[float]]:
+    return list(map(list, zip(*matrix)))
+
+
+def cof(matrix: List[List[float]]) -> List[List[float]]:
+    # TODO: This code is pretty ugly.
+
+    cofactor_matrix = []
+
+    for row in range(len(matrix)):
+        cofactor_matrix.append([])
+
+        for col in range(len(matrix[row])):
+            minor = copy.deepcopy(matrix)
+            del minor[row]
+
+            for r in minor:
+                del r[col]
+
+            cofactor_matrix[row].append(det(minor) * (1 if (row + col) % 2 is 0 else -1))
+
+    return cofactor_matrix
+
+
+def adj(matrix: List[List[float]]) -> List[List[float]]:
+    return trans(cof(matrix))
+
+
+def inv(matrix: List[List[float]]):
+    multiplier = 1 / det(matrix)
+    return [[cell * multiplier for cell in row] for row in adj(matrix)]
 
 
 calc_map = {
