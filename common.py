@@ -32,6 +32,7 @@ token_map = OrderedDict((
     (r'trans',              'OPR'),
     (r'cof',                'OPR'),
     (r'inv',                'OPR'),
+    (r'rref',               'OPR'),
     (r'[a-zA-Z_]+',         'IDT'),
     (r'=',                  'EQL'),
     (r'\+',                 'ADD'),

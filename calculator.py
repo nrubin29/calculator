@@ -13,7 +13,7 @@ class Calculator:
     def __init__(self):
         self.vrs = {}
 
-    def evaluate(self, eqtn: str) -> Value:
+    def evaluate(self, eqtn: str, verbose=True) -> Value:
         for e in eqtn.split(';'):
             root, remaining_tokens = self._match(self._tokenize(e), 'idt')
 
@@ -25,7 +25,10 @@ class Calculator:
 
             if isinstance(res, Value):
                 ast.ast.value = res
-                print(ast)
+
+                if verbose:
+                    print(ast)
+
                 return res
 
             elif isinstance(res, dict):
