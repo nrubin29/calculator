@@ -6,7 +6,7 @@ from typing import List
 import re
 
 from ast import Ast
-from common import Value, Token, token_map, rules_map, RuleMatch
+from common import Value, Token, token_map, rules_map, RuleMatch, ProcessedRuleMatch, rm_index, rm_key_at
 
 
 class Calculator:
@@ -23,13 +23,13 @@ class Calculator:
             ast = Ast(root)
             res = ast.evaluate(self.vrs)
 
-            if isinstance(res, Value):
-                ast.ast.value = res
+            if isinstance(res, ProcessedRuleMatch):
+                # ast.ast.value = res
 
                 if verbose:
                     print(ast)
 
-                return res
+                return res.value
 
             elif isinstance(res, dict):
                 self.vrs.update(res)
@@ -49,10 +49,14 @@ class Calculator:
     def _match(self, tokens: List[Token], target_rule: str):
         # print('match', tokens, target_rule)
 
-        if tokens and tokens[0].name == target_rule:  # This is a token, not a rule.
-            return tokens[0], tokens[1:]
+        if target_rule.isupper():
+            # This is a token, not a rule.
+            if tokens and tokens[0].name == target_rule:  # This is a token, not a rule.
+                return tokens[0], tokens[1:]
 
-        for pattern in rules_map.get(target_rule, ()):
+            return None, None
+
+        for pattern in rules_map[target_rule]:
             # print('trying pattern', pattern)
 
             remaining_tokens = tokens
@@ -69,5 +73,9 @@ class Calculator:
                 matched.append(m)
             else:
                 # Success!
-                return RuleMatch(target_rule, matched, None), remaining_tokens
+                return RuleMatch(target_rule, matched), remaining_tokens
+
+        if rm_index(target_rule) + 1 < len(rules_map):
+            return self._match(tokens, rm_key_at(rm_index(target_rule) + 1))
+
         return None, None
