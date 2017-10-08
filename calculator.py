@@ -6,7 +6,7 @@ from typing import List
 import re
 
 from ast import Ast
-from common import Value, Token, token_map, rules_map, RuleMatch
+from common import Token, token_map, rules_map, RuleMatch, Value
 
 
 class Calculator:
@@ -15,7 +15,7 @@ class Calculator:
 
     def evaluate(self, eqtn: str, verbose=True) -> Value:
         for e in eqtn.split(';'):
-            root, remaining_tokens = self._match(self._tokenize(e), 'idt')
+            root, remaining_tokens = self._match(self._tokenize(e), 'asn')
 
             if remaining_tokens:
                 raise Exception('Invalid equation (bad format)')
@@ -24,7 +24,7 @@ class Calculator:
             res = ast.evaluate(self.vrs)
 
             if isinstance(res, Value):
-                ast.ast.value = res
+                ast.root.value = res
 
                 if verbose:
                     print(ast)
@@ -49,10 +49,13 @@ class Calculator:
     def _match(self, tokens: List[Token], target_rule: str):
         # print('match', tokens, target_rule)
 
-        if tokens and tokens[0].name == target_rule:  # This is a token, not a rule.
-            return tokens[0], tokens[1:]
+        if target_rule.isupper():  # This is a token, not a rule.
+            if tokens and tokens[0].name == target_rule:
+                return tokens[0], tokens[1:]
 
-        for pattern in rules_map.get(target_rule, ()):
+            return None, None
+
+        for pattern in rules_map[target_rule]:
             # print('trying pattern', pattern)
 
             remaining_tokens = tokens
@@ -69,5 +72,9 @@ class Calculator:
                 matched.append(m)
             else:
                 # Success!
-                return RuleMatch(target_rule, matched, None), remaining_tokens
+                return RuleMatch(target_rule, matched), remaining_tokens
+
+        if rules_map.index(target_rule) + 1 < len(rules_map):
+            return self._match(tokens, rules_map.key_at(rules_map.index(target_rule) + 1))
+
         return None, None

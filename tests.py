@@ -5,8 +5,6 @@ Unit tests for the AST calculator.
 import random
 import unittest
 
-import sympy
-
 from calculator import Calculator
 
 
@@ -75,13 +73,14 @@ class PowerTests(unittest.TestCase):
 
 class ParenthesisTests(unittest.TestCase):
     def runTest(self):
-        # self.assertEqual(evaluate('(1 + 2) * 3'), 9.0)
-        # self.assertEqual(evaluate('(1 + 2) ^ (2 * 3 - 2)'), 81.0)
+        self.assertEqual(evaluate('(1 + 2) * 3'), 9.0)
+        self.assertEqual(evaluate('(1 + 2) ^ (2 * 3 - 2)'), 81.0)
         self.assertEqual(evaluate('2 (1 + 1)'), 4.0)
 
 
 class IdentifierTests(unittest.TestCase):
     def runTest(self):
+        pass
         self.assertEqual(evaluate('r = 10; r'), 10.0)
         self.assertEqual(round(evaluate('r = 5.2 * (3 + 2 / (1 + 1/6)); pi = 3.14159; area = pi * r^2; area'), 5), 1887.93915)
         self.assertEqual(round(evaluate('area = pi * r^2; r = 5.2 * (3 + 2 / (1 + 1/6)); pi = 3.14159; area'), 5), 1887.93915)
@@ -106,49 +105,52 @@ class CombinationTests(unittest.TestCase):
 
 class MatrixTests(unittest.TestCase):
     def runTest(self):
-        # self.assertEqual(evaluate('[1,2]'), [[1.0, 2.0]])
-        # self.assertEqual(evaluate('det([1,2,3|4,5,6|7,8,8])'), 3.0)
-        #
-        # self.assertEqual(evaluate('[1,2|4,5]'), [[1.0, 2.0], [4.0, 5.0]])
-        # self.assertEqual(evaluate('trans([1,2|4,5])'), [[1.0, 4.0], [2.0, 5.0]])
-        #
-        # self.assertEqual(evaluate('inv([1,4,7|3,0,5|-1,9,11])'), [[45/8, -19/8, -5/2], [19/4, -9/4, -2], [-27/8, 13/8, 3/2]])
-        #
-        # self.assertEqual(evaluate('[1,0,0|0,1,0|0,0,1]'), [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
-        #
-        # self.assertEqual(evaluate('[1,0,0,0|0,1,0,0|0,0,1,0|0,0,0,1]'), [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])
-        # self.assertEqual(evaluate('det([1,3,5,7|2,4,6,8|9,7,5,4|8,6,5,9])'), 2.0)
-        #
-        # self.assertEqual(evaluate('cof([1,2,3|0,4,5|1,0,6])'), [[24, 5, -4], [-12, 3, 2], [-2, -5, 4]])
-        #
-        # # Since we have floating-point issues, we have to test each value individually.
-        # calc = evaluate('inv([1,2,3|0,4,5|1,0,6])')
-        # print(calc)
-        # ans = [[12/11, -6/11, -1/11], [5/22, 3/22, -5/22], [-2/11, 1/11, 2/11]]
-        #
-        # for row in range(len(calc)):
-        #     for col in range(len(calc)):
-        #         self.assertAlmostEqual(calc[row][col], ans[row][col])
+        self.assertEqual(evaluate('[1,2]'), [1.0, 2.0])  # TODO: I guess we can now tell the difference between matrices and vectors...is that good?
+        self.assertEqual(evaluate('det([1,2,3|4,5,6|7,8,8])'), 3.0)
 
-        # self.assertEqual(evaluate('rref([1,2,3|4,5,6|7,8,8])'), [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-        # self.assertEqual(evaluate('rref([1,2,4|4,7,6|7,1,8])'), [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        self.assertEqual(evaluate('[1,2|4,5]'), [[1.0, 2.0], [4.0, 5.0]])
+        self.assertEqual(evaluate('trans([1,2|4,5])'), [[1.0, 4.0], [2.0, 5.0]])
+
+        self.assertEqual(evaluate('inv([1,4,7|3,0,5|-1,9,11])'), [[45/8, -19/8, -5/2], [19/4, -9/4, -2], [-27/8, 13/8, 3/2]])
+
+        self.assertEqual(evaluate('[1,0,0|0,1,0|0,0,1]'), [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+
+        self.assertEqual(evaluate('[1,0,0,0|0,1,0,0|0,0,1,0|0,0,0,1]'), [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])
+        self.assertEqual(evaluate('det([1,3,5,7|2,4,6,8|9,7,5,4|8,6,5,9])'), 2.0)
+
+        self.assertEqual(evaluate('cof([1,2,3|0,4,5|1,0,6])'), [[24, 5, -4], [-12, 3, 2], [-2, -5, 4]])
+
+        # Since we have floating-point issues, we have to test each value individually.
+        calc = evaluate('inv([1,2,3|0,4,5|1,0,6])')
+        print(calc)
+        ans = [[12/11, -6/11, -1/11], [5/22, 3/22, -5/22], [-2/11, 1/11, 2/11]]
+
+        for row in range(len(calc)):
+            for col in range(len(calc)):
+                self.assertAlmostEqual(calc[row][col], ans[row][col])
+
+        self.assertEqual(evaluate('identity(3)'), [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        self.assertEqual(evaluate('trnsform([0,0,2|0,3,0|4,0,0])'), [[0, 0, 1], [0, 1, 0], [1, 0, 0]])
+
+        self.assertEqual(evaluate('rref([1,2,3|4,5,6|7,8,8])'), [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        self.assertEqual(evaluate('rref([1,2,4|4,7,6|7,1,8])'), [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
         self.assertEqual(evaluate('rref([1,2,3|4,5,6|4,5,6])'), [[1, 0, -1], [0, 1, 2], [0, 0, 0]])
-        # self.assertEqual(evaluate('rref([1,2,3|4,5,6|7,8,9])'), [[1, 0, -1], [0, 1, 2], [0, 0, 0]])
+        self.assertEqual(evaluate('rref([1,2,3|4,5,6|7,8,9])'), [[1, 0, -1], [0, 1, 2], [0, 0, 0]])
 
-        for r_dim in range(3, 10):
-            print(r_dim)
-
-            for _ in range(10):
-                mat = [[random.randint(0, 100) for _ in range(r_dim)] for _ in range(r_dim)]
-                mat_str = '[' + '|'.join([','.join(map(str, line)) for line in mat]) + ']'
-
-                # print('*****<')
-                # print(sympy.Matrix(mat))
-                # print(sympy.Matrix(evaluate('rref({})'.format(mat_str), False)))
-                # print(sympy.Matrix(mat).rref()[0])
-                # print('>*****')
-
-                self.assertTrue(sympy.Matrix(evaluate('rref({})'.format(mat_str), False)).equals(sympy.Matrix(mat).rref()[0]))
+        # for r_dim in range(3, 10):
+        #     print(r_dim)
+        #
+        #     for _ in range(10):
+        #         mat = [[random.randint(0, 100) for _ in range(r_dim)] for _ in range(r_dim)]
+        #         mat_str = '[' + '|'.join([','.join(map(str, line)) for line in mat]) + ']'
+        #
+        #         # print('*****<')
+        #         # print(sympy.Matrix(mat))
+        #         # print(sympy.Matrix(evaluate('rref({})'.format(mat_str), False)))
+        #         # print(sympy.Matrix(mat).rref()[0])
+        #         # print('>*****')
+        #
+        #         self.assertTrue(sympy.Matrix(evaluate('rref({})'.format(mat_str), False)).equals(sympy.Matrix(mat).rref()[0]))
 
 
 class RandomTests(unittest.TestCase):
