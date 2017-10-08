@@ -5,7 +5,7 @@ import math
 
 import copy
 
-from token_value import Value, Token
+from common import Value, Token
 
 
 class Type(metaclass=ABCMeta):

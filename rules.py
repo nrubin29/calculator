@@ -3,9 +3,19 @@ This file contains methods to handle processing RuleMatches
 """
 from typing import List
 
-from common import Token, Process
-from token_value import Value
+from common import Token, Value
 from vartypes import Number, MatrixRow, Matrix, Variable
+
+
+class Process:
+    def __init__(self, operation, operands: List, raw_args=False):
+        self.operation = operation
+        self.operands = operands
+
+        if raw_args:
+            self.value = operation(operands)
+        else:
+            self.value = operation(*operands)
 
 
 def var(_, tokens: List[Token]) -> Process:

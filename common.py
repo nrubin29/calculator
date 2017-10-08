@@ -2,12 +2,11 @@
 This file contains important information for the calculator.
 """
 
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 from typing import List
 
-from token_value import Token
-from vartypes import Number, Matrix, MatrixRow
-
+Token = namedtuple('Token', ('name', 'value'))
+Value = namedtuple('Value', ('type', 'value'))
 
 class RuleMatch:
     def __init__(self, name: str, matched: List[Token]):
@@ -32,23 +31,6 @@ class RuleMatch:
                 output += (('\t' * (depth + 1)) + matched.name + ': ' + matched.value) + '\n'
 
         return output
-
-    # def __str__(self):
-    #     return 'RuleMatch(' + ', '.join(map(str, [self.name, self.matched])) + ')'
-    #
-    # def __repr__(self):
-    #     return str(self)
-
-
-class Process:
-    def __init__(self, operation, operands: List, raw_args=False):
-        self.operation = operation
-        self.operands = operands
-
-        if raw_args:
-            self.value = operation(operands)
-        else:
-            self.value = operation(*operands)
 
 
 token_map = OrderedDict((
@@ -110,10 +92,4 @@ rules_map = IndexedOrderedDict((
 left_assoc = {
     'ADD': 'add',
     'MUL': 'mul',
-}
-
-value_map = {
-    'NUM': Number,
-    'MAT': Matrix,
-    'MRW': MatrixRow
 }

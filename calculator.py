@@ -6,8 +6,7 @@ from typing import List
 import re
 
 from ast import Ast
-from common import Token, token_map, rules_map, RuleMatch, Process
-from token_value import Value
+from common import Token, token_map, rules_map, RuleMatch, Value
 
 
 class Calculator:
@@ -25,7 +24,7 @@ class Calculator:
             res = ast.evaluate(self.vrs)
 
             if isinstance(res, Value):
-                ast.ast.value = res
+                ast.root.value = res
 
                 if verbose:
                     print(ast)
