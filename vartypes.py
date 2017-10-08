@@ -59,6 +59,12 @@ class Type(metaclass=ABCMeta):
         raise Exception('Operation not defined for this type.')
 
 
+class Variable(Type):
+    @staticmethod
+    def new(tokens: List) -> Value:
+        return Value(Variable, tokens[0].value)
+
+
 class Number(Type):
     @staticmethod
     def new(tokens: List[Token]) -> Value:

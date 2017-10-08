@@ -13,7 +13,7 @@ class RuleMatch:
     def __init__(self, name: str, matched: List[Token]):
         self.name = name
         self.matched = matched
-        self.processed = None
+        self.value = None
 
     def __str__(self):
         return self._str(self)  # + '\n>> ' + self.infix()
@@ -22,7 +22,7 @@ class RuleMatch:
         return str(self)
 
     def _str(self, ast, depth=0) -> str:
-        output = (('\t' * depth) + ast.name + ' = ' + str(ast.processed.value if ast.processed else None)) + '\n'
+        output = (('\t' * depth) + ast.name + ' = ' + str(ast.value if ast.value else None)) + '\n'
 
         for matched in ast.matched:
             if isinstance(matched, RuleMatch) and matched.matched:
@@ -40,7 +40,7 @@ class RuleMatch:
     #     return str(self)
 
 
-class ProcessedRuleMatch:
+class Process:
     def __init__(self, operation, operands: List, raw_args=False):
         self.operation = operation
         self.operands = operands
@@ -82,8 +82,17 @@ token_map = OrderedDict((
 
 remove = ('EQL', 'LPA', 'RPA', 'LBR', 'RBR', 'CMA', 'PPE')
 
-rules_map = OrderedDict((
-    ('idt', ('IDT EQL add',)),
+
+class IndexedOrderedDict(OrderedDict):
+    def index(self, key):
+        return list(self.keys()).index(key)
+
+    def key_at(self, i):
+        return list(self.keys())[i]
+
+
+rules_map = IndexedOrderedDict((
+    ('asn', ('IDT EQL add',)),
     ('mat', ('LBR mbd RBR',)),
     ('mbd', ('mrw PPE mbd',)),
     ('mrw', ('add CMA mrw',)),
@@ -93,16 +102,9 @@ rules_map = OrderedDict((
     ('pow', ('opr POW pow',)),
     ('opr', ('OPR LPA mat RPA',)),
     ('neg', ('ADD num', 'ADD opr')),
-    ('num', ('NUM', 'IDT', 'LPA add RPA')),
+    ('var', ('IDT',)),
+    ('num', ('NUM', 'LPA add RPA')),
 ))
-
-
-def rm_index(key):
-    return list(rules_map.keys()).index(key)
-
-
-def rm_key_at(i):
-    return list(rules_map.keys())[i]
 
 
 left_assoc = {

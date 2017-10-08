@@ -3,13 +3,15 @@ This file contains the Ast class, which represents an abstract syntax tree which
 """
 from typing import Dict
 
+import copy
+
 from common import RuleMatch, remove, left_assoc, Token
 from rules import rule_process_map, rule_process_value_map
+from vartypes import Variable
 
 
 class Ast:
     def __init__(self, ast: RuleMatch):
-        print(self._str(ast))
         self.ast = self._fixed(ast)
 
     def _fixed(self, ast):
@@ -23,10 +25,9 @@ class Ast:
             if ast.matched[i].name in remove:
                 del ast.matched[i]
 
-        # This flattens rules with a single matched element.
-        if len(ast.matched) is 1 and ast.name != 'mbd':
-            if ast.name != 'num' or isinstance(ast.matched[0], RuleMatch):
-                return self._fixed(ast.matched[0])
+        # This flattens rules with a single matched rule.
+        if len(ast.matched) is 1 and isinstance(ast.matched[0], RuleMatch):
+            return self._fixed(ast.matched[0])
 
         # This makes left-associative operations left-associative.
         for token_name, rule in left_assoc.items():
@@ -63,24 +64,27 @@ class Ast:
     def evaluate(self, vrs: Dict[str, RuleMatch]):
         return self._evaluate(self.ast, vrs)
 
-    def _evaluate(self, ast, vrs: Dict[str, RuleMatch]):  # -> Union[Dict[str, RuleMatch], Token]:
-        if ast.name == 'idt':
+    def _evaluate(self, ast, vrs: Dict[str, RuleMatch]):
+        if ast.name == 'asn':
             return {ast.matched[0].value: ast.matched[1]}
 
         for token in ast.matched:
-            if isinstance(token, RuleMatch) and not token.processed:
-                token.processed = self._evaluate(token, vrs)
+            if isinstance(token, RuleMatch) and not token.value:
+                token.value = self._evaluate(token, vrs)
 
-        prms = [token.processed.value for token in ast.matched if isinstance(token, RuleMatch) and token.processed]
+        values = [token.value for token in ast.matched if isinstance(token, RuleMatch) and token.value]
         tokens = [token for token in ast.matched if not isinstance(token, RuleMatch)]
 
-        if ast.name in rule_process_value_map:
-            processed = rule_process_value_map[ast.name](prms, tokens)
+        if ast.matched[0].name == 'IDT':
+            return self._evaluate(copy.deepcopy(vrs[ast.matched[0].value]), vrs)
+
+        elif ast.name in rule_process_value_map:
+            process = rule_process_value_map[ast.name](values, tokens)
 
         else:
-            processed = rule_process_map[ast.name](prms, tokens[0] if len(tokens) > 0 else None)  # This extra rule is part of the num hotfix.
+            process = rule_process_map[ast.name](values, tokens[0] if len(tokens) > 0 else None)  # This extra rule is part of the num hotfix.
 
-        return processed
+        return process.value
 
     def infix(self) -> str:
         # TODO: Add parentheses where needed.
@@ -96,7 +100,7 @@ class Ast:
         return str(self)
 
     def _str(self, ast, depth=0) -> str:
-        output = (('\t' * depth) + ast.name + ' = ' + str(ast.processed.value if ast.processed else None)) + '\n'
+        output = (('\t' * depth) + ast.name + ' = ' + str(ast.value if ast.value else None)) + '\n'
 
         for matched in ast.matched:
             if isinstance(matched, RuleMatch) and matched.matched:

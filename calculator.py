@@ -6,7 +6,8 @@ from typing import List
 import re
 
 from ast import Ast
-from common import Value, Token, token_map, rules_map, RuleMatch, ProcessedRuleMatch, rm_index, rm_key_at
+from common import Token, token_map, rules_map, RuleMatch, Process
+from token_value import Value
 
 
 class Calculator:
@@ -15,7 +16,7 @@ class Calculator:
 
     def evaluate(self, eqtn: str, verbose=True) -> Value:
         for e in eqtn.split(';'):
-            root, remaining_tokens = self._match(self._tokenize(e), 'idt')
+            root, remaining_tokens = self._match(self._tokenize(e), 'asn')
 
             if remaining_tokens:
                 raise Exception('Invalid equation (bad format)')
@@ -23,13 +24,13 @@ class Calculator:
             ast = Ast(root)
             res = ast.evaluate(self.vrs)
 
-            if isinstance(res, ProcessedRuleMatch):
-                # ast.ast.value = res
+            if isinstance(res, Value):
+                ast.ast.value = res
 
                 if verbose:
                     print(ast)
 
-                return res.value
+                return res
 
             elif isinstance(res, dict):
                 self.vrs.update(res)
@@ -49,9 +50,8 @@ class Calculator:
     def _match(self, tokens: List[Token], target_rule: str):
         # print('match', tokens, target_rule)
 
-        if target_rule.isupper():
-            # This is a token, not a rule.
-            if tokens and tokens[0].name == target_rule:  # This is a token, not a rule.
+        if target_rule.isupper():  # This is a token, not a rule.
+            if tokens and tokens[0].name == target_rule:
                 return tokens[0], tokens[1:]
 
             return None, None
@@ -75,7 +75,7 @@ class Calculator:
                 # Success!
                 return RuleMatch(target_rule, matched), remaining_tokens
 
-        if rm_index(target_rule) + 1 < len(rules_map):
-            return self._match(tokens, rm_key_at(rm_index(target_rule) + 1))
+        if rules_map.index(target_rule) + 1 < len(rules_map):
+            return self._match(tokens, rules_map.key_at(rules_map.index(target_rule) + 1))
 
         return None, None

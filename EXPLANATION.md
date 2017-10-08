@@ -4,5 +4,5 @@
    * Calculator#_match
 3. The tree is fixed. Unnecessary tokens are removed, precedence issues are fixed, etc.
    * Ast#_fixed
-5. The tree is evaluated in a recursive fashion.
+4. The tree is evaluated in a recursive fashion.
    * Ast#evaluate
