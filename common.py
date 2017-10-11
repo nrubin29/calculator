@@ -8,6 +8,7 @@ from typing import List
 Token = namedtuple('Token', ('name', 'value'))
 Value = namedtuple('Value', ('type', 'value'))
 
+
 class RuleMatch:
     def __init__(self, name: str, matched: List[Token]):
         self.name = name

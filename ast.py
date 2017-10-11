@@ -5,7 +5,7 @@ import copy
 from typing import Dict
 
 from common import RuleMatch, remove, left_assoc, Token
-from rules import rule_process_map, rule_process_value_map
+from rules import rule_value_map, rule_value_operation_map
 
 
 class Ast:
@@ -76,13 +76,11 @@ class Ast:
         if node.matched[0].name == 'IDT':
             return self._evaluate(copy.deepcopy(vrs[node.matched[0].value]), vrs)
 
-        elif node.name in rule_process_value_map:
-            process = rule_process_value_map[node.name](values, tokens)
+        elif node.name in rule_value_map:
+            return rule_value_map[node.name](values, tokens)
 
         else:
-            process = rule_process_map[node.name](values, tokens[0] if len(tokens) > 0 else None)  # This extra rule is part of the num hotfix.
-
-        return process.value
+            return rule_value_operation_map[node.name](values, tokens[0] if len(tokens) > 0 else None)  # This extra rule is part of the num hotfix.
 
     def infix(self) -> str:
         # TODO: Add parentheses and missing tokens.
