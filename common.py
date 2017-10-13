@@ -94,3 +94,7 @@ left_assoc = {
     'ADD': 'add',
     'MUL': 'mul',
 }
+
+
+class EvaluationException(Exception):
+    pass

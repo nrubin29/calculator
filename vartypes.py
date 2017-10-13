@@ -5,7 +5,7 @@ import math
 
 import copy
 
-from common import Value, Token
+from common import Value, Token, EvaluationException
 
 
 class Type(metaclass=ABCMeta):
@@ -192,58 +192,44 @@ class Matrix(Type):
 
     @staticmethod
     def inv(matrix: Value) -> Value:
-        multiplier = 1 / Matrix._det(matrix.value)
+        det = Matrix._det(matrix.value)
+
+        if det == 0:
+            raise EvaluationException('Cannot invert matrix with determinant of 0.')
+
+        multiplier = 1 / det
         return Value(Matrix, [[cell * multiplier for cell in row] for row in Matrix.adj(matrix).value])
 
     @staticmethod
-    def trnsform(matrix) -> Value:
-        # Returns the transformation matrix which, when multiplied by the original matrix, will give the rref form of the original matrix.
+    def _rref(matrix):
+        # Returns the transformation matrix which, when multiplied by the original matrix, will give its rref form.
         mat = copy.deepcopy(matrix.value)
         ident = Number.identity(Value(Number, len(mat))).value
         row = 0
         col = 0
 
-        def count_leading_zeroes(row):
-            for i in range(len(row)):
-                if row[i] != 0:
-                    return i
+        def arrange_by_leading_zeroes():
+            r = 0
 
-            return len(row)
+            def count_leading_zeroes(row):
+                for i in range(len(row)):
+                    if row[i] != 0:
+                        return i
 
-        while row < len(mat) - 1:
-            if count_leading_zeroes(mat[row]) > count_leading_zeroes(mat[row + 1]):
-                mat[row], mat[row + 1] = mat[row + 1], mat[row]
-                ident[row], ident[row + 1] = ident[row + 1], ident[row]
-                row = 0
+                return len(row)
 
-            else:
-                row += 1
+            while r < len(mat) - 1:
+                if count_leading_zeroes(mat[r]) > count_leading_zeroes(mat[r + 1]):
+                    mat[r], mat[r + 1] = mat[r + 1], mat[r]
+                    ident[r], ident[r + 1] = ident[r + 1], ident[r]
+                    r = 0
 
-        row = 0
+                else:
+                    r += 1
 
-        return Value(Matrix, ident)
-
-    @staticmethod
-    def rref(matrix: Value) -> Value:
-        mat = copy.deepcopy(matrix.value)
-        row = 0
-        col = 0
-
-        def count_leading_zeroes(row):
-            for i in range(len(row)):
-                if row[i] != 0:
-                    return i
-
-            return len(row)
-
-        # Sort the matrix by the number of 0s in each row with the most 0s going to the bottom.
-        mat = sorted(mat, key=count_leading_zeroes)
-
-        # print(mat)
+        arrange_by_leading_zeroes()
 
         while row < len(mat) and col < len(mat[row]):
-            # print(row, mat)
-
             # If there is a leading 0, move column over but remain on the same row.
             if mat[row][col] == 0:
                 col += 1
@@ -251,14 +237,18 @@ class Matrix(Type):
 
             # Divide each cell in the row by the first cell to ensure that the row starts with a 1.
             mat[row] = [cell / mat[row][col] for cell in mat[row]]
+            ident[row] = [cell / mat[row][col] for cell in ident[row]]
 
             # Multiply all lower rows as needed.
             for i in range(row + 1, len(mat)):
                 multiplier = -mat[i][col] / mat[row][col]
                 mat[i] = [cell + (mat[row][c] * multiplier) for c, cell in enumerate(mat[i])]
+                ident[i] = [cell + (mat[row][c] * multiplier) for c, cell in enumerate(ident[i])]
 
             row += 1
             col += 1
+
+            arrange_by_leading_zeroes()
 
         row = len(mat) - 1
         col = len(mat[row]) - 1
@@ -278,13 +268,24 @@ class Matrix(Type):
                 # print('multiplier', multiplier)
 
                 mat[i] = [cell + (mat[row][c] * multiplier) for c, cell in enumerate(mat[i])]
+                ident[i] = [cell + (mat[row][c] * multiplier) for c, cell in enumerate(ident[i])]
 
                 # print('it is now', mat[i])
 
             row -= 1
             col -= 1
 
-        return Value(Matrix, mat)
+            arrange_by_leading_zeroes()
+
+        return mat, ident
+
+    @staticmethod
+    def rref(matrix: Value) -> Value:
+        return Value(Matrix, Matrix._rref(matrix)[0])
+
+    @staticmethod
+    def trnsform(matrix) -> Value:
+        return Value(Matrix, Matrix._rref(matrix)[1])
 
 
 class MatrixRow(Type):

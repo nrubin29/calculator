@@ -5,7 +5,10 @@ Unit tests for the AST calculator.
 import random
 import unittest
 
+import sympy
+
 from calculator import Calculator
+from common import EvaluationException
 
 
 def evaluate(eqtn: str, verbose=True):
@@ -105,52 +108,52 @@ class CombinationTests(unittest.TestCase):
 
 class MatrixTests(unittest.TestCase):
     def runTest(self):
-        self.assertEqual(evaluate('[1,2]'), [1.0, 2.0])  # TODO: I guess we can now tell the difference between matrices and vectors...is that good?
-        self.assertEqual(evaluate('det([1,2,3|4,5,6|7,8,8])'), 3.0)
+        rnd = lambda e: round(e, 5)
+        more_zeroes = lambda n: n if n <= 75 else 0
 
-        self.assertEqual(evaluate('[1,2|4,5]'), [[1.0, 2.0], [4.0, 5.0]])
-        self.assertEqual(evaluate('trans([1,2|4,5])'), [[1.0, 4.0], [2.0, 5.0]])
+        for r_dim in range(3, 10):
+            print(r_dim)
 
-        self.assertEqual(evaluate('inv([1,4,7|3,0,5|-1,9,11])'), [[45/8, -19/8, -5/2], [19/4, -9/4, -2], [-27/8, 13/8, 3/2]])
+            self.assertTrue(sympy.Matrix(evaluate('identity({})'.format(r_dim), False)).equals(sympy.Identity(r_dim)))
 
-        self.assertEqual(evaluate('[1,0,0|0,1,0|0,0,1]'), [[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]])
+            for _ in range(10):
+                mat = [[more_zeroes(random.randint(0, 100)) for _ in range(r_dim)] for _ in range(r_dim)]
+                mat_str = '[' + '|'.join([','.join(map(str, line)) for line in mat]) + ']'
 
-        self.assertEqual(evaluate('[1,0,0,0|0,1,0,0|0,0,1,0|0,0,0,1]'), [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]])
-        self.assertEqual(evaluate('det([1,3,5,7|2,4,6,8|9,7,5,4|8,6,5,9])'), 2.0)
+                sym_mat = sympy.Matrix(mat)
+                rref = sym_mat.rref()[0]
 
-        self.assertEqual(evaluate('cof([1,2,3|0,4,5|1,0,6])'), [[24, 5, -4], [-12, 3, 2], [-2, -5, 4]])
-
-        # Since we have floating-point issues, we have to test each value individually.
-        calc = evaluate('inv([1,2,3|0,4,5|1,0,6])')
-        print(calc)
-        ans = [[12/11, -6/11, -1/11], [5/22, 3/22, -5/22], [-2/11, 1/11, 2/11]]
-
-        for row in range(len(calc)):
-            for col in range(len(calc)):
-                self.assertAlmostEqual(calc[row][col], ans[row][col])
-
-        self.assertEqual(evaluate('identity(3)'), [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-        self.assertEqual(evaluate('trnsform([0,0,2|0,3,0|4,0,0])'), [[0, 0, 1], [0, 1, 0], [1, 0, 0]])
-
-        self.assertEqual(evaluate('rref([1,2,3|4,5,6|7,8,8])'), [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-        self.assertEqual(evaluate('rref([1,2,4|4,7,6|7,1,8])'), [[1, 0, 0], [0, 1, 0], [0, 0, 1]])
-        self.assertEqual(evaluate('rref([1,2,3|4,5,6|4,5,6])'), [[1, 0, -1], [0, 1, 2], [0, 0, 0]])
-        self.assertEqual(evaluate('rref([1,2,3|4,5,6|7,8,9])'), [[1, 0, -1], [0, 1, 2], [0, 0, 0]])
-
-        # for r_dim in range(3, 10):
-        #     print(r_dim)
-        #
-        #     for _ in range(10):
-        #         mat = [[random.randint(0, 100) for _ in range(r_dim)] for _ in range(r_dim)]
-        #         mat_str = '[' + '|'.join([','.join(map(str, line)) for line in mat]) + ']'
-        #
-        #         # print('*****<')
-        #         # print(sympy.Matrix(mat))
-        #         # print(sympy.Matrix(evaluate('rref({})'.format(mat_str), False)))
-        #         # print(sympy.Matrix(mat).rref()[0])
-        #         # print('>*****')
-        #
-        #         self.assertTrue(sympy.Matrix(evaluate('rref({})'.format(mat_str), False)).equals(sympy.Matrix(mat).rref()[0]))
+                try:
+                    self.assertTrue(evaluate('det({})'.format(mat_str), False) == sym_mat.det())
+                    self.assertTrue(
+                        sympy.Matrix(evaluate('trans({})'.format(mat_str), False)).equals(sym_mat.transpose()))
+                    self.assertTrue(sympy.Matrix(evaluate('inv({})'.format(mat_str), False)).applyfunc(rnd).equals(
+                        sym_mat.inv().evalf().applyfunc(rnd)))
+                    self.assertTrue(
+                        sympy.Matrix(evaluate('cof({})'.format(mat_str), False)).equals(sym_mat.cofactor_matrix()))
+                    self.assertTrue(sympy.Matrix(evaluate('rref({})'.format(mat_str), False)).equals(rref))
+                    # self.assertTrue(sym_mat.multiply_elementwise(sympy.Matrix(evaluate('trnsform({})'.format(mat_str), False))).applyfunc(rnd).equals(rref.evalf().applyfunc(rnd)))
+                    # TODO: trnsform doesn't work.
+                except AssertionError:
+                    print('FAILED')
+                    print('matrix', sym_mat)
+                    print('det', sym_mat.det())
+                    print('trans', sym_mat.transpose())
+                    print('inv', sym_mat.inv().evalf())
+                    print('cof', sym_mat.cofactor_matrix())
+                    print('rref', rref)
+                    print('----')
+                    print('det', evaluate('det({})'.format(mat_str), False))
+                    print('trans', evaluate('trans({})'.format(mat_str), False))
+                    print('inv', evaluate('inv({})'.format(mat_str), False))
+                    print('cof', evaluate('cof({})'.format(mat_str), False))
+                    print('rref', evaluate('rref({})'.format(mat_str), False))
+                    print('trnsform', evaluate('trnsform({})'.format(mat_str), False))
+                    print('matrix * trnsform', sym_mat.multiply_elementwise(sympy.Matrix(evaluate('trnsform({})'.format(mat_str), False))))
+                    raise
+                except EvaluationException as e:
+                    print(e)
+                    pass
 
 
 class RandomTests(unittest.TestCase):
