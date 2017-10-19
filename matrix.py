@@ -19,7 +19,6 @@ class MatrixTransformer:
         row = 0
         col = 0
 
-        # TODO: Add arrange_by_leading_zeroes back and make sure it works correctly.
         self._arrange_by_leading_zeroes()
 
         while row < len(self.matrix) and col < len(self.matrix[row]):
@@ -38,7 +37,6 @@ class MatrixTransformer:
             row += 1
             col += 1
 
-            # TODO: This probably fucks up row and col...
             if self._arrange_by_leading_zeroes():
                 row = 0
                 col = 0
