@@ -1,7 +1,7 @@
 """
 Unit tests for the AST calculator.
 """
-
+import decimal
 import random
 import unittest
 
@@ -116,15 +116,18 @@ class MatrixTests(unittest.TestCase):
 
             self.assertTrue(sympy.Matrix(evaluate('identity({})'.format(r_dim), False)).equals(sympy.Identity(r_dim)))
 
-            for _ in range(10):
+            for _ in range(50):
                 mat = [[more_zeroes(random.randint(0, 100)) for _ in range(r_dim)] for _ in range(r_dim)]
                 mat_str = '[' + '|'.join([','.join(map(str, line)) for line in mat]) + ']'
 
                 sym_mat = sympy.Matrix(mat)
                 rref = sym_mat.rref()[0]
 
+                if not rref.equals(sympy.Identity(r_dim)):
+                    print('rref not identity!', rref)
+
                 try:
-                    self.assertTrue(evaluate('det({})'.format(mat_str), False) == sym_mat.det())
+                    self.assertTrue(decimal.Context(prec=10).create_decimal(float(evaluate('det({})'.format(mat_str), False))) == decimal.Context(prec=10).create_decimal(float(sym_mat.det())))
                     self.assertTrue(
                         sympy.Matrix(evaluate('trans({})'.format(mat_str), False)).equals(sym_mat.transpose()))
                     self.assertTrue(sympy.Matrix(evaluate('inv({})'.format(mat_str), False)).applyfunc(rnd).equals(
@@ -132,7 +135,7 @@ class MatrixTests(unittest.TestCase):
                     self.assertTrue(
                         sympy.Matrix(evaluate('cof({})'.format(mat_str), False)).equals(sym_mat.cofactor_matrix()))
                     self.assertTrue(sympy.Matrix(evaluate('rref({})'.format(mat_str), False)).equals(rref))
-                    # self.assertTrue(sym_mat.multiply_elementwise(sympy.Matrix(evaluate('trnsform({})'.format(mat_str), False))).applyfunc(rnd).equals(rref.evalf().applyfunc(rnd)))
+                    self.assertTrue(sympy.Matrix(evaluate('trnsform({})'.format(mat_str), False)).multiply(sym_mat).evalf().applyfunc(rnd).equals(rref.evalf().applyfunc(rnd)))
                     # TODO: trnsform doesn't work.
                 except AssertionError:
                     print('FAILED')
@@ -149,7 +152,9 @@ class MatrixTests(unittest.TestCase):
                     print('cof', evaluate('cof({})'.format(mat_str), False))
                     print('rref', evaluate('rref({})'.format(mat_str), False))
                     print('trnsform', evaluate('trnsform({})'.format(mat_str), False))
-                    print('matrix * trnsform', sym_mat.multiply_elementwise(sympy.Matrix(evaluate('trnsform({})'.format(mat_str), False))))
+                    print('trnsform * matrix', sympy.Matrix(evaluate('trnsform({})'.format(mat_str), False)).multiply(sym_mat))
+                    print('trnsform * matrix with rounding',
+                          sympy.Matrix(evaluate('trnsform({})'.format(mat_str), False)).multiply(sym_mat).evalf().applyfunc(rnd))
                     raise
                 except EvaluationException as e:
                     print(e)
@@ -167,6 +172,7 @@ class RandomTests(unittest.TestCase):
             eqtn = eqtn.strip()[:-2]
 
             self.assertEqual(evaluate(eqtn), eval(eqtn))
+
 
 if __name__ == '__main__':
     unittest.main()

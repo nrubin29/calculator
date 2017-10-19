@@ -6,6 +6,7 @@ import math
 import copy
 
 from common import Value, Token, EvaluationException
+from matrix import MatrixTransformer
 
 
 class Type(metaclass=ABCMeta):
@@ -202,82 +203,7 @@ class Matrix(Type):
 
     @staticmethod
     def _rref(matrix):
-        # Returns the transformation matrix which, when multiplied by the original matrix, will give its rref form.
-        mat = copy.deepcopy(matrix.value)
-        ident = Number.identity(Value(Number, len(mat))).value
-        row = 0
-        col = 0
-
-        def arrange_by_leading_zeroes():
-            r = 0
-
-            def count_leading_zeroes(row):
-                for i in range(len(row)):
-                    if row[i] != 0:
-                        return i
-
-                return len(row)
-
-            while r < len(mat) - 1:
-                if count_leading_zeroes(mat[r]) > count_leading_zeroes(mat[r + 1]):
-                    mat[r], mat[r + 1] = mat[r + 1], mat[r]
-                    ident[r], ident[r + 1] = ident[r + 1], ident[r]
-                    r = 0
-
-                else:
-                    r += 1
-
-        arrange_by_leading_zeroes()
-
-        while row < len(mat) and col < len(mat[row]):
-            # If there is a leading 0, move column over but remain on the same row.
-            if mat[row][col] == 0:
-                col += 1
-                continue
-
-            # Divide each cell in the row by the first cell to ensure that the row starts with a 1.
-            mat[row] = [cell / mat[row][col] for cell in mat[row]]
-            ident[row] = [cell / mat[row][col] for cell in ident[row]]
-
-            # Multiply all lower rows as needed.
-            for i in range(row + 1, len(mat)):
-                multiplier = -mat[i][col] / mat[row][col]
-                mat[i] = [cell + (mat[row][c] * multiplier) for c, cell in enumerate(mat[i])]
-                ident[i] = [cell + (mat[row][c] * multiplier) for c, cell in enumerate(ident[i])]
-
-            row += 1
-            col += 1
-
-            arrange_by_leading_zeroes()
-
-        row = len(mat) - 1
-        col = len(mat[row]) - 1
-
-        # print('going back up', row, col)
-
-        while row > 0:
-            # If we have a 0 at this point, we don't need to go back up for this row.
-            if mat[row][col] == 0:
-                row -= 1
-                col -= 1
-                continue
-
-            for i in range(row - 1, -1, -1):
-                multiplier = -mat[i][col] / mat[row][col]
-
-                # print('multiplier', multiplier)
-
-                mat[i] = [cell + (mat[row][c] * multiplier) for c, cell in enumerate(mat[i])]
-                ident[i] = [cell + (mat[row][c] * multiplier) for c, cell in enumerate(ident[i])]
-
-                # print('it is now', mat[i])
-
-            row -= 1
-            col -= 1
-
-            arrange_by_leading_zeroes()
-
-        return mat, ident
+        return MatrixTransformer(copy.deepcopy(matrix.value)).rref()
 
     @staticmethod
     def rref(matrix: Value) -> Value:
