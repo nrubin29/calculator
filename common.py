@@ -3,7 +3,7 @@ This file contains important information for the calculator.
 """
 
 from collections import OrderedDict, namedtuple
-from typing import List, Dict
+from typing import List
 
 Token = namedtuple('Token', ('name', 'value'))
 Value = namedtuple('Value', ('type', 'value'))
@@ -16,7 +16,7 @@ class RuleMatch:
         self.value = None
 
     def __str__(self):
-        return self._str(self)  # + '\n>> ' + self.infix()
+        return self._str(self)
 
     def __repr__(self):
         return str(self)
@@ -67,32 +67,25 @@ remove = ('EQL', 'LPA', 'RPA', 'LBR', 'RBR', 'CMA', 'PPE')
 
 
 class ImmutableIndexedDict:
-    def __init__(self, keys: List, data: Dict):
-        self._keys = keys
-        self._data = data
+    def __init__(self, data):
+        self._keys = tuple(item[0] for item in data)
+        self._key_indices = {key: self._keys.index(key) for key in self._keys}  # Caching indices cuts down on runtime.
+        self._data = dict(data)
 
     def __getitem__(self, key):
         return self._data[key]
 
     def __len__(self):
-        return len(self._keys)
+        return len(self._data)
 
     def index(self, key):
-        return self._keys.index(key)
+        return self._key_indices[key]
 
     def key_at(self, i):
         return self._keys[i]
 
 
-class IndexedOrderedDict(OrderedDict):
-    def index(self, key):
-        return list(self.keys()).index(key)
-
-    def key_at(self, i):
-        return list(self.keys())[i]
-
-
-rules_map = IndexedOrderedDict((
+rules_map = ImmutableIndexedDict((
     ('asn', ('IDT EQL mat',)),
     ('mat', ('LBR mbd RBR',)),
     ('mbd', ('mrw PPE mbd',)),
@@ -106,10 +99,6 @@ rules_map = IndexedOrderedDict((
     ('var', ('IDT',)),
     ('num', ('NUM', 'LPA add RPA')),
 ))
-
-# This helps a little bit, but not much.
-# Perhaps construct a graph (single-linked list) (asn -> mat -> mbd, etc.) and pass nodes in evaluate().
-rules_map = ImmutableIndexedDict(['asn', 'mat', 'mbd', 'mrw', 'add', 'mui', 'mul', 'pow', 'opr', 'neg', 'var', 'num'], dict((('asn', ('IDT EQL mat',)),('mat', ('LBR mbd RBR',)),('mbd', ('mrw PPE mbd',)),('mrw', ('add CMA mrw',)),('add', ('mul ADD add',)),('mui', ('pow mul',)),('mul', ('pow MUL mul',)),('pow', ('opr POW pow',)),('opr', ('OPR LPA mat RPA',)),('neg', ('ADD num', 'ADD opr')),('var', ('IDT',)),('num', ('NUM', 'LPA add RPA')),)))
 
 
 left_assoc = {
