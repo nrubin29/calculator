@@ -93,7 +93,7 @@ class IndexedOrderedDict(OrderedDict):
 
 
 rules_map = IndexedOrderedDict((
-    ('asn', ('IDT EQL add',)),
+    ('asn', ('IDT EQL mat',)),
     ('mat', ('LBR mbd RBR',)),
     ('mbd', ('mrw PPE mbd',)),
     ('mrw', ('add CMA mrw',)),
@@ -109,7 +109,7 @@ rules_map = IndexedOrderedDict((
 
 # This helps a little bit, but not much.
 # Perhaps construct a graph (single-linked list) (asn -> mat -> mbd, etc.) and pass nodes in evaluate().
-rules_map = ImmutableIndexedDict(['asn', 'mat', 'mbd', 'mrw', 'add', 'mui', 'mul', 'pow', 'opr', 'neg', 'var', 'num'], dict((('asn', ('IDT EQL add',)),('mat', ('LBR mbd RBR',)),('mbd', ('mrw PPE mbd',)),('mrw', ('add CMA mrw',)),('add', ('mul ADD add',)),('mui', ('pow mul',)),('mul', ('pow MUL mul',)),('pow', ('opr POW pow',)),('opr', ('OPR LPA mat RPA',)),('neg', ('ADD num', 'ADD opr')),('var', ('IDT',)),('num', ('NUM', 'LPA add RPA')),)))
+rules_map = ImmutableIndexedDict(['asn', 'mat', 'mbd', 'mrw', 'add', 'mui', 'mul', 'pow', 'opr', 'neg', 'var', 'num'], dict((('asn', ('IDT EQL mat',)),('mat', ('LBR mbd RBR',)),('mbd', ('mrw PPE mbd',)),('mrw', ('add CMA mrw',)),('add', ('mul ADD add',)),('mui', ('pow mul',)),('mul', ('pow MUL mul',)),('pow', ('opr POW pow',)),('opr', ('OPR LPA mat RPA',)),('neg', ('ADD num', 'ADD opr')),('var', ('IDT',)),('num', ('NUM', 'LPA add RPA')),)))
 
 
 left_assoc = {

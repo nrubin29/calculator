@@ -111,12 +111,12 @@ class MatrixTests(unittest.TestCase):
         rnd = lambda e: round(e, 5)
         more_zeroes = lambda n: n if n <= 75 else 0
 
-        for r_dim in range(3, 10):
+        for r_dim in range(3, 4):
             print(r_dim)
 
             self.assertTrue(sympy.Matrix(evaluate('identity({})'.format(r_dim), False)).equals(sympy.Identity(r_dim)))
 
-            for _ in range(50):
+            for _ in range(5):
                 mat = [[more_zeroes(random.randint(0, 100)) for _ in range(r_dim)] for _ in range(r_dim)]
                 mat_str = '[' + '|'.join([','.join(map(str, line)) for line in mat]) + ']'
 

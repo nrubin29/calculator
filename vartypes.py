@@ -100,8 +100,10 @@ class Number(Type):
         if other.type is Number:
             return Value(Number, this.value * other.value)
 
+        elif other.type is Matrix:
+            return Matrix.mul(other, this)
+
         else:
-            # TODO: Support for scalar * matrix.
             raise Exception('Cannot mul {} and {}'.format(this.type, other.type))
 
     @staticmethod
@@ -145,6 +147,25 @@ class Matrix(Type):
     @staticmethod
     def new(tokens: List[Value]) -> Value:
         return Value(Matrix, list(map(lambda t: t.value, tokens)))
+
+    @staticmethod
+    def mul(this: Value, other: Value):
+        if other.type == Number:
+            # Number * Matrix
+            return Value(Matrix, [[cell * other.value for cell in row] for row in other.value])
+
+        elif other.type == Matrix:
+            # Matrix * Matrix
+            result = [[0 for _ in range(len(this.value))] for _ in range(len(other.value[0]))]
+
+            for i in range(len(this.value)):
+                for j in range(len(other.value[0])):
+                    for k in range(len(other.value)):
+                        result[i][j] += this.value[i][k] * other.value[k][j]
+
+            return Value(Matrix, result)
+
+        raise Exception('Cannot mul {} and {}'.format(this.type, other.type))
 
     @staticmethod
     def det(matrix: Value) -> Value:
