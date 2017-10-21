@@ -70,13 +70,14 @@ class ImmutableIndexedDict:
     def __init__(self, data):
         self._keys = tuple(item[0] for item in data)
         self._key_indices = {key: self._keys.index(key) for key in self._keys}  # Caching indices cuts down on runtime.
+        self._len = len(self._keys)
         self._data = dict(data)
 
     def __getitem__(self, key):
         return self._data[key]
 
     def __len__(self):
-        return len(self._data)
+        return self._len
 
     def index(self, key):
         return self._key_indices[key]
