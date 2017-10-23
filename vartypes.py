@@ -1,175 +1,172 @@
-from abc import ABCMeta, abstractmethod
+import copy
+import math
+from abc import ABCMeta
 from typing import List
 
-import math
-
-import copy
-
-from common import Value, Token, EvaluationException
+from common import EvaluationException
 from matrix import MatrixTransformer
 
 
-class Type(metaclass=ABCMeta):
-    @staticmethod
-    @abstractmethod
-    def new(tokens: List) -> Value:
-        raise Exception('Operation not defined for this type.')
+class Value(metaclass=ABCMeta):
+    __slots__ = ('type', 'value')
 
-    @staticmethod
-    def pos(this: Value) -> Value:
-        raise Exception('Operation not defined for this type.')
+    def __init__(self):
+        self.type = self.__class__.__name__
 
-    @staticmethod
-    def neg(this: Value) -> Value:
-        raise Exception('Operation not defined for this type.')
+    def __str__(self):
+        return str(self.value)
 
-    @staticmethod
-    def add(this: Value, other: Value) -> Value:
-        raise Exception('Operation not defined for this type.')
+    def pos(self):
+        raise EvaluationException('Operation not defined for ' + self.type)
 
-    @staticmethod
-    def sub(this: Value, other: Value) -> Value:
-        raise Exception('Operation not defined for this type.')
+    def neg(self):
+        raise EvaluationException('Operation not defined for ' + self.type)
 
-    @staticmethod
-    def mul(this: Value, other: Value) -> Value:
-        raise Exception('Operation not defined for this type.')
+    def add(self, other):
+        raise EvaluationException('Operation not defined for ' + self.type)
 
-    @staticmethod
-    def div(this: Value, other: Value) -> Value:
-        raise Exception('Operation not defined for this type.')
+    def sub(self, other):
+        raise EvaluationException('Operation not defined for ' + self.type)
 
-    @staticmethod
-    def mod(this: Value, other: Value) -> Value:
-        raise Exception('Operation not defined for this type.')
+    def mul(self, other):
+        raise EvaluationException('Operation not defined for ' + self.type)
 
-    @staticmethod
-    def pow(this: Value, other: Value) -> Value:
-        raise Exception('Operation not defined for this type.')
+    def div(self, other):
+        raise EvaluationException('Operation not defined for ' + self.type)
 
-    @staticmethod
-    def sqrt(this: Value) -> Value:
-        raise Exception('Operation not defined for this type.')
+    def mod(self, other):
+        raise EvaluationException('Operation not defined for ' + self.type)
 
-    @staticmethod
-    def exp(this: Value) -> Value:
-        raise Exception('Operation not defined for this type.')
+    
+    def pow(self, other):
+        raise EvaluationException('Operation not defined for ' + self.type)
+    
+    def sqrt(self):
+        raise EvaluationException('Operation not defined for ' + self.type)
 
-    @staticmethod
-    def identity(this: Value) -> Value:
-        raise Exception('Operation not defined for this type.')
+    def exp(self):
+        raise EvaluationException('Operation not defined for ' + self.type)
+
+    def identity(self):
+        raise EvaluationException('Operation not defined for ' + self.type)
 
 
-class Variable(Type):
-    @staticmethod
-    def new(tokens: List) -> Value:
-        return Value(Variable, tokens[0].value)
+class VariableValue(Value):
+    def __init__(self, data):
+        super().__init__()
+        
+        if isinstance(data, list):
+            self.value = data[0].value
+            
+        else:
+            self.value = data
 
 
-class Number(Type):
-    @staticmethod
-    def new(tokens: List[Token]) -> Value:
-        return Value(Number, float(tokens[0].value))
+class NumberValue(Value):
+    def __init__(self, data):
+        super().__init__()
+        
+        if isinstance(data, list):
+            self.value = float(data[0].value)
+        
+        else:
+            self.value = data
+    
+    def pos(self):
+        return NumberValue(self.value)
 
-    @staticmethod
-    def pos(this: Value) -> Value:
-        return Value(Number, this.value)
+    def neg(self):
+        return NumberValue(-self.value)
 
-    @staticmethod
-    def neg(this: Value) -> Value:
-        return Value(Number, -this.value)
-
-    @staticmethod
-    def add(this: Value, other: Value) -> Value:
-        if other.type is Number:
-            return Value(Number, this.value + other.value)
+    def add(self, other):
+        if isinstance(other, NumberValue):
+            return NumberValue(self.value + other.value)
 
         else:
-            raise Exception('Cannot add {} and {}'.format(this.type, other.type))
+            raise EvaluationException('Cannot add {} and {}'.format(self.type, other.type))
 
-    @staticmethod
-    def sub(this: Value, other: Value) -> Value:
-        if other.type is Number:
-            return Value(Number, this.value - other.value)
-
-        else:
-            raise Exception('Cannot sub {} and {}'.format(this.type, other.type))
-
-    @staticmethod
-    def mul(this: Value, other: Value) -> Value:
-        if other.type is Number:
-            return Value(Number, this.value * other.value)
-
-        elif other.type is Matrix:
-            return Matrix.mul(other, this)
+    def sub(self, other):
+        if isinstance(other, NumberValue):
+            return NumberValue(self.value - other.value)
 
         else:
-            raise Exception('Cannot mul {} and {}'.format(this.type, other.type))
+            raise EvaluationException('Cannot sub {} and {}'.format(self.type, other.type))
 
-    @staticmethod
-    def div(this: Value, other: Value) -> Value:
-        if other.type is Number:
-            return Value(Number, this.value / other.value)
+    def mul(self, other):
+        if isinstance(other, NumberValue):
+            return NumberValue(self.value * other.value)
 
-        else:
-            raise Exception('Cannot div {} and {}'.format(this.type, other.type))
-
-    @staticmethod
-    def mod(this: Value, other: Value) -> Value:
-        if other.type is Number:
-            return Value(Number, this.value % other.value)
+        elif isinstance(other, MatrixValue):
+            return other.mul(self)
 
         else:
-            raise Exception('Cannot mod {} and {}'.format(this.type, other.type))
+            raise EvaluationException('Cannot mul {} and {}'.format(self.type, other.type))
 
-    @staticmethod
-    def pow(this: Value, other: Value) -> Value:
-        if other.type is Number:
-            return Value(Number, this.value ** other.value)
+    def div(self, other):
+        if isinstance(other, NumberValue):
+            return NumberValue(self.value / other.value)
 
         else:
-            raise Exception('Cannot pow {} and {}'.format(this.type, other.type))
+            raise EvaluationException('Cannot div {} and {}'.format(self.type, other.type))
 
-    @staticmethod
-    def sqrt(this: Value) -> Value:
-        return Value(Number, math.sqrt(this.value))
+    def mod(self, other):
+        if isinstance(other, NumberValue):
+            return NumberValue(self.value % other.value)
 
-    @staticmethod
-    def exp(this: Value) -> Value:
-        return Value(Number, math.exp(this.value))
+        else:
+            raise EvaluationException('Cannot mod {} and {}'.format(self.type, other.type))
 
-    @staticmethod
-    def identity(this: Value) -> Value:
-        return Value(Matrix, [[1 if col is row else 0 for col in range(int(this.value))] for row in range(int(this.value))])
+    def pow(self, other):
+        if isinstance(other, NumberValue):
+            return NumberValue(self.value ** other.value)
+
+        else:
+            raise EvaluationException('Cannot pow {} and {}'.format(self.type, other.type))
+
+    def sqrt(self):
+        return NumberValue(math.sqrt(self.value))
+
+    def exp(self):
+        return NumberValue(math.exp(self.value))
+
+    def identity(self):
+        return MatrixValue([[1 if col is row else 0 for col in range(int(self.value))] for row in range(int(self.value))])
 
 
-class Matrix(Type):
-    @staticmethod
-    def new(tokens: List[Value]) -> Value:
-        return Value(Matrix, list(map(lambda t: t.value, tokens)))
+class MatrixValue(Value):
+    def __init__(self, data):
+        super().__init__()
+        
+        if isinstance(data[0], Value):
+            self.value = list(map(lambda t: t.value, data))
+        
+        else:
+            self.value = data
 
-    @staticmethod
-    def mul(this: Value, other: Value):
-        if other.type == Number:
+    def __str__(self):
+        return '[\n' + '\n'.join(['[' + ', '.join(map(lambda cell: str(round(cell, 5)), row)) + ']' for row in self.value]) + '\n]'
+
+    def mul(self, other):
+        if isinstance(other, NumberValue):
             # Number * Matrix
-            return Value(Matrix, [[cell * other.value for cell in row] for row in other.value])
+            return MatrixValue([[cell * other.value for cell in row] for row in other.value])
 
-        elif other.type == Matrix:
+        elif isinstance(other, MatrixValue):
             # Matrix * Matrix
-            result = [[0 for _ in range(len(this.value))] for _ in range(len(other.value[0]))]
+            result = [[0 for _ in range(len(self.value))] for _ in range(len(other.value[0]))]
 
-            for i in range(len(this.value)):
+            for i in range(len(self.value)):
                 for j in range(len(other.value[0])):
                     for k in range(len(other.value)):
-                        result[i][j] += this.value[i][k] * other.value[k][j]
+                        result[i][j] += self.value[i][k] * other.value[k][j]
 
-            return Value(Matrix, result)
+            return MatrixValue(result)
 
-        raise Exception('Cannot mul {} and {}'.format(this.type, other.type))
-
-    @staticmethod
-    def det(matrix: Value) -> Value:
-        return Value(Number, Matrix._det(matrix.value))
+        else:
+            raise EvaluationException('Cannot mul {} and {}'.format(self.type, other.type))
+    
+    def det(self):
+        return NumberValue(self._det(self.value))
 
     @staticmethod
     def _det(matrix: List[List[float]]) -> float:
@@ -179,20 +176,18 @@ class Matrix(Type):
         cofactors = []
 
         for col in range(len(matrix)):
-            cofactors.append(Matrix._det([matrix[row][0:col] + matrix[row][col + 1:] for row in range(1, len(matrix))]) * matrix[0][col] * (1 if col % 2 is 0 else -1))
+            cofactors.append(MatrixValue._det([matrix[row][0:col] + matrix[row][col + 1:] for row in range(1, len(matrix))]) * matrix[0][col] * (1 if col % 2 is 0 else -1))
 
         return sum(cofactors)
 
-    @staticmethod
-    def trans(matrix: Value) -> Value:
-        return Value(Matrix, list(map(list, zip(*matrix.value))))
+    def trans(self):
+        return MatrixValue(list(map(list, zip(*self.value))))
 
-    @staticmethod
-    def cof(matrix: Value) -> Value:
-        # TODO: This code is pretty ugly.
+    def cof(self):
+        # TODO: self code is pretty ugly.
 
         cofactor_matrix = []
-        mat = matrix.value
+        mat = self.value
 
         for row in range(len(mat)):
             cofactor_matrix.append([])
@@ -204,38 +199,38 @@ class Matrix(Type):
                 for r in minor:
                     del r[col]
 
-                cofactor_matrix[row].append(Matrix._det(minor) * (1 if (row + col) % 2 is 0 else -1))
+                cofactor_matrix[row].append(self._det(minor) * (1 if (row + col) % 2 is 0 else -1))
 
-        return Value(Matrix, cofactor_matrix)
+        return MatrixValue(cofactor_matrix)
 
-    @staticmethod
-    def adj(matrix: Value) -> Value:
-        return Matrix.trans(Matrix.cof(matrix))
+    def adj(self):
+        return self.cof().trans()
 
-    @staticmethod
-    def inv(matrix: Value) -> Value:
-        det = Matrix._det(matrix.value)
+    def inv(self):
+        det = self._det(self.value)
 
         if det == 0:
             raise EvaluationException('Cannot invert matrix with determinant of 0.')
 
         multiplier = 1 / det
-        return Value(Matrix, [[cell * multiplier for cell in row] for row in Matrix.adj(matrix).value])
+        return MatrixValue([[cell * multiplier for cell in row] for row in self.adj().value])
 
-    @staticmethod
-    def _rref(matrix):
-        return MatrixTransformer(copy.deepcopy(matrix.value)).rref()
+    def _rref(self):
+        return MatrixTransformer(copy.deepcopy(self.value)).rref()
+    
+    def rref(self):
+        return MatrixValue(self._rref()[0])
 
-    @staticmethod
-    def rref(matrix: Value) -> Value:
-        return Value(Matrix, Matrix._rref(matrix)[0])
-
-    @staticmethod
-    def trnsform(matrix) -> Value:
-        return Value(Matrix, Matrix._rref(matrix)[1])
+    def trnsform(self):
+        return MatrixValue(self._rref()[1])
 
 
-class MatrixRow(Type):
-    @staticmethod
-    def new(tokens: List[Value]) -> Value:
-        return Value(MatrixRow, list(map(lambda t: t.value, tokens)))
+class MatrixRowValue(Value):
+    def __init__(self, data):
+        super().__init__()
+
+        if isinstance(data[0], Value):
+            self.value = list(map(lambda t: t.value, data))
+
+        else:
+            self.value = data

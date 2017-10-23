@@ -6,7 +6,6 @@ from collections import OrderedDict, namedtuple
 from typing import List
 
 Token = namedtuple('Token', ('name', 'value'))
-Value = namedtuple('Value', ('type', 'value'))
 
 
 class RuleMatch:
@@ -21,10 +20,10 @@ class RuleMatch:
     def __repr__(self):
         return str(self)
 
-    def _str(self, ast, depth=0) -> str:
-        output = (('\t' * depth) + ast.name + ' = ' + str(ast.value if ast.value else None)) + '\n'
+    def _str(self, node, depth=0) -> str:
+        output = (('\t' * depth) + node.name + ' = ' + str(node.value.value if node.value else None)) + '\n'
 
-        for matched in ast.matched:
+        for matched in node.matched:
             if isinstance(matched, RuleMatch) and matched.matched:
                 output += self._str(matched, depth + 1)
 

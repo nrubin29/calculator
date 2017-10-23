@@ -6,7 +6,8 @@ from typing import List
 import re
 
 from ast import Ast
-from common import Token, token_map, rules_map, RuleMatch, Value
+from common import Token, token_map, rules_map, RuleMatch
+from vartypes import Value
 
 
 class Calculator:

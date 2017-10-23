@@ -62,6 +62,12 @@ class MatrixTransformer:
             row -= 1
             col -= 1
 
+        # Replace negative zeroes with positive zeroes.
+        for row in range(len(self.matrix)):
+            for col in range(len(self.matrix[row])):
+                if self.matrix[row][col] == -0.0:
+                    self.matrix[row][col] = 0.0
+
         return self.matrix, self.transformation
 
     @property

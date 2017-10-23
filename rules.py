@@ -3,44 +3,44 @@ This file contains methods to handle Valueing RuleMatches
 """
 from typing import List
 
-from common import Token, Value
-from vartypes import Number, MatrixRow, Matrix, Variable
+from common import Token
+from vartypes import VariableValue, NumberValue, MatrixRowValue, MatrixValue, Value
 
 
-def var(_, tokens: List[Token]) -> Value:
-    return Variable.new(tokens)
+def var(_, tokens: List[Token]) -> VariableValue:
+    return VariableValue(tokens)
 
 
-def num(_, tokens: List[Token]) -> Value:
-    return Number.new(tokens)
+def num(_, tokens: List[Token]) -> NumberValue:
+    return NumberValue(tokens)
 
 
-def mrw(values: List[Value], _) -> Value:
-    return MatrixRow.new(values)
+def mrw(values: List[Value], _) -> MatrixRowValue:
+    return MatrixRowValue(values)
 
 
-def mbd(values: List[Value], _) -> Value:
-    return Matrix.new(values)
+def mbd(values: List[Value], _) -> MatrixValue:
+    return MatrixValue(values)
 
 
 def add(operands: List[Value], operator: Token) -> Value:
-    return {'+': operands[0].type.add, '-': operands[0].type.sub}[operator.value](*operands)
+    return {'+': operands[0].add, '-': operands[0].sub}[operator.value](*operands[1:])
 
 
 def mul(operands: List[Value], operator: Token) -> Value:
-    return {'*': operands[0].type.mul, '/': operands[0].type.div, '%': operands[0].type.mod}[operator.value](*operands)
+    return {'*': operands[0].mul, '/': operands[0].div, '%': operands[0].mod}[operator.value](*operands[1:])
 
 
 def pow(operands: List[Value], _) -> Value:
-    return operands[0].type.pow(*operands)
+    return operands[0].pow(*operands[1:])
 
 
 def opr(operands: List[Value], operator: Token) -> Value:
-    return getattr(operands[0].type, operator.value)(*operands)
+    return getattr(operands[0], operator.value)(*operands[1:])
 
 
 def neg(operands: List[Value], operator: Token) -> Value:
-    return {'+': operands[0].type.pos, '-': operands[0].type.neg}[operator.value](*operands)
+    return {'+': operands[0].pos, '-': operands[0].neg}[operator.value](*operands[1:])
 
 
 # The mapping for num, mrw, mbd.
