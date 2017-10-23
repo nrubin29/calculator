@@ -24,6 +24,7 @@ class Ast:
                 del node.matched[i]
 
         # This flattens rules with a single matched rule.
+        # TODO: Flattening messes up smaller matrices ([1], [1,2], [1|2], etc.).
         if len(node.matched) is 1 and isinstance(node.matched[0], RuleMatch):
             return self._fixed(node.matched[0])
 

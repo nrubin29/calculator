@@ -89,8 +89,8 @@ class ImmutableIndexedDict:
 rules_map = ImmutableIndexedDict((
     ('asn', ('IDT EQL mat',)),
     ('mat', ('LBR mbd RBR',)),
-    ('mbd', ('mrw PPE mbd',)),
-    ('mrw', ('add CMA mrw',)),
+    ('mbd', ('mrw PPE mbd', 'mrw')),
+    ('mrw', ('add CMA mrw', 'add')),
     ('add', ('mul ADD add',)),
     ('mui', ('pow mul',)),
     ('mul', ('pow MUL mul',)),
