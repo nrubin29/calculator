@@ -67,10 +67,19 @@ remove = ('EQL', 'LPA', 'RPA', 'LBR', 'RBR', 'CMA', 'PPE')
 
 class ImmutableIndexedDict:
     def __init__(self, data):
-        self._keys = tuple(item[0] for item in data)
-        self._key_indices = {key: self._keys.index(key) for key in self._keys}  # Caching indices cuts down on runtime.
-        self._len = len(self._keys)
-        self._data = dict(data)
+        self._keys = tuple(item[0].lstrip('^') for item in data)
+        self._data = {key.lstrip('^'): values for key, values in data}
+
+        # Caching indices cuts down on runtime.
+        idx = 0
+        self._key_indices = {}
+
+        for key in tuple(item[0] for item in data):
+            if not key.startswith('^'):
+                self._key_indices[key] = idx
+                idx += 1
+
+        self._len = len(self._key_indices)
 
     def __getitem__(self, key):
         return self._data[key]
@@ -86,18 +95,18 @@ class ImmutableIndexedDict:
 
 
 rules_map = ImmutableIndexedDict((
-    ('asn', ('IDT EQL mat',)),
-    ('mat', ('LBR mbd RBR',)),
-    ('mbd', ('mrw PPE mbd', 'mrw')),
-    ('mrw', ('add CMA mrw', 'add')),
+    ('asn', ('IDT EQL add',)),
     ('add', ('mul ADD add',)),
     ('mui', ('pow mul',)),
     ('mul', ('pow MUL mul',)),
     ('pow', ('opr POW pow',)),
-    ('opr', ('OPR LPA mat RPA',)),
+    ('opr', ('OPR LPA add RPA',)),
     ('neg', ('ADD num', 'ADD opr')),
     ('var', ('IDT',)),
     ('num', ('NUM', 'LPA add RPA')),
+    ('mat', ('LBR mbd RBR',)),
+    ('^mbd', ('mrw PPE mbd', 'mrw')),
+    ('^mrw', ('add CMA mrw', 'add')),
 ))
 
 

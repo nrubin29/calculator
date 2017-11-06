@@ -149,7 +149,7 @@ class MatrixValue(Value):
     def mul(self, other):
         if isinstance(other, NumberValue):
             # Number * Matrix
-            return MatrixValue([[cell * other.value for cell in row] for row in other.value])
+            return MatrixValue([[cell * other.value for cell in row] for row in self.value])
 
         elif isinstance(other, MatrixValue):
             # Matrix * Matrix

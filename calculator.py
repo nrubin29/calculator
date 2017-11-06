@@ -33,6 +33,7 @@ class Calculator:
                 return res
 
             elif isinstance(res, dict):
+                print(ast)
                 self.vrs.update(res)
 
     def _tokenize(self, eqtn: str) -> List[Token]:

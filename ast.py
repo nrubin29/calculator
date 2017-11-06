@@ -24,8 +24,7 @@ class Ast:
                 del node.matched[i]
 
         # This flattens rules with a single matched rule.
-        # TODO: Flattening messes up smaller matrices ([1], [1,2], [1|2], etc.).
-        if len(node.matched) is 1 and isinstance(node.matched[0], RuleMatch):
+        if len(node.matched) is 1 and isinstance(node.matched[0], RuleMatch) and node.name not in ('mbd', 'mrw'):  # The last condition fixes small matrices like [1], [1,2], and [1|2].
             return self._fixed(node.matched[0])
 
         # This makes left-associative operations left-associative.
