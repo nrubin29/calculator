@@ -36,11 +36,10 @@ class Value(metaclass=ABCMeta):
 
     def mod(self, other):
         raise EvaluationException('Operation not defined for ' + self.type)
-
     
     def pow(self, other):
         raise EvaluationException('Operation not defined for ' + self.type)
-    
+
     def sqrt(self):
         raise EvaluationException('Operation not defined for ' + self.type)
 
@@ -48,6 +47,9 @@ class Value(metaclass=ABCMeta):
         raise EvaluationException('Operation not defined for ' + self.type)
 
     def identity(self):
+        raise EvaluationException('Operation not defined for ' + self.type)
+
+    def solve(self, other):
         raise EvaluationException('Operation not defined for ' + self.type)
 
 
@@ -224,6 +226,9 @@ class MatrixValue(Value):
     def trnsform(self):
         return MatrixValue(self._rref()[1])
 
+    def solve(self, other):
+        return NumberValue(2)
+
 
 class MatrixRowValue(Value):
     def __init__(self, data):
@@ -234,3 +239,10 @@ class MatrixRowValue(Value):
 
         else:
             self.value = data
+
+
+class OperatorBodyValue(Value):
+    def __init__(self, args):
+        super().__init__()
+
+        self.value = args

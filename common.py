@@ -45,6 +45,7 @@ token_map = OrderedDict((
     (r'identity',           'OPR'),
     (r'trnsform',           'OPR'),
     (r'rref',               'OPR'),
+    (r'solve',              'OPR'),
     (r'[a-zA-Z_]+',         'IDT'),
     (r'=',                  'EQL'),
     (r'\+',                 'ADD'),
@@ -67,7 +68,7 @@ remove = ('EQL', 'LPA', 'RPA', 'LBR', 'RBR', 'CMA', 'PPE')
 
 class ImmutableIndexedDict:
     def __init__(self, data):
-        self._keys = tuple(item[0].lstrip('^') for item in data)
+        self._keys = tuple(item[0] for item in data if not item[0].startswith('^'))
         self._data = {key.lstrip('^'): values for key, values in data}
 
         # Caching indices cuts down on runtime.
@@ -100,7 +101,8 @@ rules_map = ImmutableIndexedDict((
     ('mui', ('pow mul',)),
     ('mul', ('pow MUL mul',)),
     ('pow', ('opr POW pow',)),
-    ('opr', ('OPR LPA add RPA',)),
+    ('opr', ('OPR LPA opb RPA',)),
+    ('^opb', ('add CMA opb', 'add')),
     ('neg', ('ADD num', 'ADD opr')),
     ('var', ('IDT',)),
     ('num', ('NUM', 'LPA add RPA')),

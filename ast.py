@@ -24,7 +24,7 @@ class Ast:
                 del node.matched[i]
 
         # This flattens rules with a single matched rule.
-        if len(node.matched) is 1 and isinstance(node.matched[0], RuleMatch) and node.name not in ('mbd', 'mrw'):  # The last condition fixes small matrices like [1], [1,2], and [1|2].
+        if len(node.matched) is 1 and isinstance(node.matched[0], RuleMatch) and node.name not in ('mbd', 'mrw', 'opb'):  # The last condition fixes small matrices like [1], [1,2], and [1|2].
             return self._fixed(node.matched[0])
 
         # This makes left-associative operations left-associative.
@@ -39,19 +39,13 @@ class Ast:
         if node.name == 'mui':
             return self._fixed(RuleMatch('mul', [node.matched[0], Token('MUL', '*'), node.matched[1]]))
 
-        # This flattens matrix rows into parent matrix rows.
-        if node.name == 'mrw':
-            for i in range(len(node.matched) - 1, -1, -1):
-                if node.matched[i].name == 'mrw':
-                    node.matched[i:] = node.matched[i].matched
-                    return self._fixed(node)
-
-        # This flattens matrix bodies into parent matrix bodies.
-        if node.name == 'mbd':
-            for i in range(len(node.matched) - 1, -1, -1):
-                if node.matched[i].name == 'mbd':
-                    node.matched[i:] = node.matched[i].matched
-                    return self._fixed(node)
+        # This flattens nested nodes into their parents if their parents are of the same type.
+        for tpe in ('mrw', 'mbd', 'opb'):
+            if node.name == tpe:
+                for i in range(len(node.matched) - 1, -1, -1):
+                    if node.matched[i].name == tpe:
+                        node.matched[i:] = node.matched[i].matched
+                        return self._fixed(node)
 
         if isinstance(node, RuleMatch):
             for i in range(len(node.matched)):

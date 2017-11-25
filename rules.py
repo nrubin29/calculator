@@ -4,7 +4,19 @@ This file contains methods to handle Valueing RuleMatches
 from typing import List
 
 from common import Token
-from vartypes import VariableValue, NumberValue, MatrixRowValue, MatrixValue, Value
+from vartypes import VariableValue, NumberValue, MatrixRowValue, MatrixValue, Value, OperatorBodyValue
+
+
+def flatten(l):
+    lst = []
+
+    for elem in l:
+        if isinstance(elem, list):
+            lst.append(elem[0])
+        else:
+            lst.append(elem)
+
+    return lst
 
 
 def var(_, tokens: List[Token]) -> VariableValue:
@@ -23,6 +35,10 @@ def mbd(values: List[Value], _) -> MatrixValue:
     return MatrixValue(values)
 
 
+def opb(values: List[Value], _) -> OperatorBodyValue:
+    return OperatorBodyValue(values)
+
+
 def add(operands: List[Value], operator: Token) -> Value:
     return {'+': operands[0].add, '-': operands[0].sub}[operator.value](*operands[1:])
 
@@ -36,7 +52,8 @@ def pow(operands: List[Value], _) -> Value:
 
 
 def opr(operands: List[Value], operator: Token) -> Value:
-    return getattr(operands[0], operator.value)(*operands[1:])
+    args = operands[0].value
+    return getattr(args[0], operator.value)(*args[1:])
 
 
 def neg(operands: List[Value], operator: Token) -> Value:
@@ -49,6 +66,7 @@ rule_value_map = {
     'num': num,
     'mrw': mrw,
     'mbd': mbd,
+    'opb': opb,
 }
 
 # The mapping for all other rules.
