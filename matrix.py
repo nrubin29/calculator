@@ -1,4 +1,5 @@
 import copy
+from collections import OrderedDict
 from typing import List, Tuple
 
 
@@ -8,7 +9,7 @@ class DynamicVector:
     """
     def __init__(self, size):
         self.size = size
-        self.vectors = {'const': [0] * size}
+        self.vectors = OrderedDict({'const': [0] * size})
 
     def add(self, row):
         # Adds a new free variable
@@ -32,7 +33,7 @@ class DynamicVector:
         self.vectors['const'][row] = val
 
     def __str__(self):
-        return str(self.vectors)
+        return (str(self.vectors['const']) + ' + ' + ' + '.join([str(val) + ' * x_' + str(key) for key, val in self.vectors.items() if key != 'const'])).rstrip(' + ')
 
 
 MatrixTyping = List[List[float]]
@@ -43,12 +44,13 @@ class MatrixTransformer:
     This class is in charge of calculating rref and transformation matrices for a given matrix.
     """
 
-    def __init__(self, matrix, answer=None):
+    def __init__(self, matrix):
         self.matrix = matrix
         self.transformation = self.identity
-        self.answer = answer or [0] * len(self.matrix)
+        self.answer = None
 
-    def rref(self) -> Tuple[MatrixTyping, MatrixTyping, DynamicVector]:
+    def rref(self, answer=None) -> Tuple[MatrixTyping, MatrixTyping, DynamicVector]:
+        self.answer = answer or [0] * len(self.matrix)
         row = 0
         col = 0
 
@@ -121,7 +123,7 @@ class MatrixTransformer:
 
                 for nxt in range(num_zeroes + 1, len(self.matrix[row])):
                     if self.matrix[row][nxt] != 0:
-                        dvec.set(row, nxt, -matrix[row][nxt])
+                        dvec.set(row, nxt, -self.matrix[row][nxt])
 
         dvec.add_missing(range(len(self.matrix)))
 
@@ -186,14 +188,14 @@ def multiply_matrices(a: MatrixTyping, b: MatrixTyping) -> MatrixTyping:
 
 if __name__ == '__main__':
     # matrix = [[1, 2, 3, 4], [4, 2, 3, 7], [1, 2, 3, 8], [9, 2, 3, 3]]
-    # matrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    matrix = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
     # matrix = [[1, 0, 0], [0, 1, 2], [0, 0, 0]]
-    matrix = [[1, 0, -58/17], [0, 1, 29/19], [0, 0, 0]]
+    # matrix = [[1, 0, -58/17], [0, 1, 29/19], [0, 0, 0]]
     # matrix = [[1, 0, 0], [0, 0, 0], [0, 0, 0]]
     # matrix = [[1, 2, 0], [0, 0, 1], [0, 0, 0]]
     ans = [1, 2, 3]
-    transformer = MatrixTransformer(copy.deepcopy(matrix), copy.deepcopy(ans))
-    rref, transformation, answer = transformer.rref()
+    transformer = MatrixTransformer(copy.deepcopy(matrix))
+    rref, transformation, answer = transformer.rref(copy.deepcopy(ans))
     print(rref, '|', ans, '->', answer, '\n')
     print(transformation)
     print(multiply_matrices(transformation, matrix))

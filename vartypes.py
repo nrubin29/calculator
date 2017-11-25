@@ -4,7 +4,7 @@ from abc import ABCMeta
 from typing import List
 
 from common import EvaluationException
-from matrix import MatrixTransformer
+from matrix import MatrixTransformer, DynamicVector
 
 
 class Value(metaclass=ABCMeta):
@@ -145,6 +145,8 @@ class MatrixValue(Value):
         else:
             self.value = data
 
+        self._rref_cache = None
+
     def __str__(self):
         return '[\n' + '\n'.join(['[' + ', '.join(map(lambda cell: str(round(cell, 5)), row)) + ']' for row in self.value]) + '\n]'
 
@@ -218,7 +220,10 @@ class MatrixValue(Value):
         return MatrixValue([[cell * multiplier for cell in row] for row in self.adj().value])
 
     def _rref(self):
-        return MatrixTransformer(copy.deepcopy(self.value)).rref()
+        if not self._rref_cache:
+            self._rref_cache = MatrixTransformer(copy.deepcopy(self.value)).rref()
+
+        return self._rref_cache
     
     def rref(self):
         return MatrixValue(self._rref()[0])
@@ -227,7 +232,7 @@ class MatrixValue(Value):
         return MatrixValue(self._rref()[1])
 
     def solve(self, other):
-        return NumberValue(2)
+        return DynamicVectorValue(MatrixTransformer(copy.deepcopy(self.value)).rref(other.value[0])[2])
 
 
 class MatrixRowValue(Value):
@@ -242,7 +247,26 @@ class MatrixRowValue(Value):
 
 
 class OperatorBodyValue(Value):
-    def __init__(self, args):
+    def __init__(self, args: List):
         super().__init__()
 
         self.value = args
+
+
+class DynamicVectorValue(Value):
+    def __init__(self, dvec: DynamicVector):
+        super().__init__()
+
+        self.value = dvec
+
+    def eval(self, *args):
+        dvec = copy.deepcopy(self.value)
+        ans = dvec.vectors.pop('const')
+
+        i = 0
+        for _, free_var in dvec.vectors.items():
+            row = [x * int(args[i].value) for x in free_var]
+            ans = [ans[i] + row[i] for i in range(len(ans))]
+            i += 1
+
+        return MatrixValue([ans])
