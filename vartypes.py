@@ -157,7 +157,7 @@ class MatrixValue(Value):
 
         elif isinstance(other, MatrixValue):
             # Matrix * Matrix
-            result = [[0 for _ in range(len(self.value))] for _ in range(len(other.value[0]))]
+            result = [[0 for _ in range(len(other.value[0]))] for _ in range(len(self.value))]
 
             for i in range(len(self.value)):
                 for j in range(len(other.value[0])):
