@@ -55,7 +55,7 @@ class MultiplicationTests(unittest.TestCase):
     def runTest(self):
         self.assertEqual(evaluate('1 * 1'), 1.0)
         self.assertEqual(evaluate('2 * 3'), 6.0)
-        # self.assertEqual(evaluate('-2 * -2'), 4.0)
+        self.assertEqual(evaluate('-2 * -2'), 4.0)
         self.assertEqual(evaluate('(2 * 3) (2 * 3)'), 36.0)
 
 
@@ -116,7 +116,9 @@ class MatrixTests(unittest.TestCase):
 
             self.assertTrue(sympy.Matrix(evaluate('identity({})'.format(r_dim), False)).equals(sympy.Identity(r_dim)))
 
-            for _ in range(5):
+            for _ in range(1):
+                print(_)
+
                 mat = [[more_zeroes(random.randint(0, 100)) for _ in range(r_dim)] for _ in range(r_dim)]
                 mat_str = '[' + '|'.join([','.join(map(str, line)) for line in mat]) + ']'
 

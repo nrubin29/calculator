@@ -76,7 +76,8 @@ class Calculator:
                 # Success!
                 return RuleMatch(target_rule, matched), remaining_tokens
 
-        if rules_map.index(target_rule) + 1 < len(rules_map):
-            return self._match(tokens, rules_map.key_at(rules_map.index(target_rule) + 1))
+        idx = rules_map.index(target_rule)
+        if idx + 1 < len(rules_map):
+            return self._match(tokens, rules_map.key_at(idx + 1))
 
         return None, None
