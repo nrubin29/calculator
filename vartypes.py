@@ -52,6 +52,12 @@ class Value(metaclass=ABCMeta):
     def solve(self, other):
         raise EvaluationException('Operation not defined for ' + self.type)
 
+    def eval(self, other):
+        raise EvaluationException('Operation not defined for ' + self.type)
+
+    def ls(self, other):
+        raise EvaluationException('Operation not defined for ' + self.type)
+
 
 class VariableValue(Value):
     def __init__(self, data):
@@ -188,16 +194,13 @@ class MatrixValue(Value):
         return MatrixValue(list(map(list, zip(*self.value))))
 
     def cof(self):
-        # TODO: self code is pretty ugly.
-
         cofactor_matrix = []
-        mat = self.value
 
-        for row in range(len(mat)):
+        for row in range(len(self.value)):
             cofactor_matrix.append([])
 
-            for col in range(len(mat[row])):
-                minor = copy.deepcopy(mat)
+            for col in range(len(self.value[row])):
+                minor = copy.deepcopy(self.value)
                 del minor[row]
 
                 for r in minor:
@@ -233,6 +236,9 @@ class MatrixValue(Value):
 
     def solve(self, other):
         return DynamicVectorValue(MatrixTransformer(copy.deepcopy(self.value)).rref(other.value[0])[2])
+
+    def ls(self, other):
+        return (self.trans().mul(self)).inv().mul(self.trans()).mul(other)
 
 
 class MatrixRowValue(Value):
