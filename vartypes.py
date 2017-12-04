@@ -16,47 +16,8 @@ class Value(metaclass=ABCMeta):
     def __str__(self):
         return str(self.value)
 
-    def pos(self):
-        raise EvaluationException('Operation not defined for ' + self.type)
-
-    def neg(self):
-        raise EvaluationException('Operation not defined for ' + self.type)
-
-    def add(self, other):
-        raise EvaluationException('Operation not defined for ' + self.type)
-
-    def sub(self, other):
-        raise EvaluationException('Operation not defined for ' + self.type)
-
-    def mul(self, other):
-        raise EvaluationException('Operation not defined for ' + self.type)
-
-    def div(self, other):
-        raise EvaluationException('Operation not defined for ' + self.type)
-
-    def mod(self, other):
-        raise EvaluationException('Operation not defined for ' + self.type)
-    
-    def pow(self, other):
-        raise EvaluationException('Operation not defined for ' + self.type)
-
-    def sqrt(self):
-        raise EvaluationException('Operation not defined for ' + self.type)
-
-    def exp(self):
-        raise EvaluationException('Operation not defined for ' + self.type)
-
-    def identity(self):
-        raise EvaluationException('Operation not defined for ' + self.type)
-
-    def solve(self, other):
-        raise EvaluationException('Operation not defined for ' + self.type)
-
-    def eval(self, other):
-        raise EvaluationException('Operation not defined for ' + self.type)
-
-    def ls(self, other):
-        raise EvaluationException('Operation not defined for ' + self.type)
+    def __getattr__(self, item):
+        raise EvaluationException('{} does not have operation {}'.format(self.type, item))
 
 
 class VariableValue(Value):
