@@ -1,10 +1,15 @@
 import copy
+import functools
 import math
 from abc import ABCMeta
 from typing import List
 
-from common import EvaluationException
+from common import EvaluationException, operations
 from matrix import MatrixTransformer, DynamicVector
+
+
+def raise_exception(tpe, op):
+    raise EvaluationException('{} does not have operation {}'.format(tpe, op))
 
 
 class Value(metaclass=ABCMeta):
@@ -13,11 +18,12 @@ class Value(metaclass=ABCMeta):
     def __init__(self):
         self.type = self.__class__.__name__
 
+        for op in operations:
+            if not hasattr(self, op):
+                setattr(self, op, functools.partial(raise_exception, tpe=self.type, op=op))
+
     def __str__(self):
         return str(self.value)
-
-    def __getattr__(self, item):
-        raise EvaluationException('{} does not have operation {}'.format(self.type, item))
 
 
 class VariableValue(Value):
@@ -141,8 +147,8 @@ class MatrixValue(Value):
 
     @staticmethod
     def _det(matrix: List[List[float]]) -> float:
-        if len(matrix) is 2:
-            return (matrix[0][0] * matrix[1][1]) - (matrix[0][1] * matrix[1][0])
+        if len(matrix) is 1:
+            return matrix[0][0]
 
         cofactors = []
 

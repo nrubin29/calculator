@@ -119,6 +119,8 @@ left_assoc = {
     'MUL': 'mul',
 }
 
+operations = ('pos', 'neg', 'add', 'sub', 'mul', 'div', 'mod', 'pow', 'sqrt', 'exp', 'identity', 'det', 'trans', 'cof', 'adj', 'inv', 'rref', 'trnsform', 'solve', 'ls', 'eval')
+
 
 class EvaluationException(Exception):
     pass
