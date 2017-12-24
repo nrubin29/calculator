@@ -6,6 +6,7 @@ from typing import Dict
 
 from common import RuleMatch, remove, left_assoc, Token
 from rules import rule_value_map, rule_value_operation_map
+from vartypes import TupleValue
 
 
 class Ast:
@@ -24,7 +25,7 @@ class Ast:
                 del node.matched[i]
 
         # This flattens rules with a single matched rule.
-        if len(node.matched) is 1 and isinstance(node.matched[0], RuleMatch) and node.name not in ('mbd', 'mrw', 'opb'):  # The last condition fixes small matrices like [1], [1,2], and [1|2].
+        if len(node.matched) is 1 and isinstance(node.matched[0], RuleMatch) and node.name not in ('mbd', 'mrw', 'opb', 'asb'):  # The last condition fixes small matrices like [1], [1,2], and [1|2].
             return self._fixed(node.matched[0])
 
         # This makes left-associative operations left-associative.
@@ -40,7 +41,7 @@ class Ast:
             return self._fixed(RuleMatch('mul', [node.matched[0], Token('MUL', '*'), node.matched[1]]))
 
         # This flattens nested nodes into their parents if their parents are of the same type.
-        for tpe in ('mrw', 'mbd', 'opb'):
+        for tpe in ('mrw', 'mbd', 'opb', 'asb'):
             if node.name == tpe:
                 for i in range(len(node.matched) - 1, -1, -1):
                     if node.matched[i].name == tpe:
@@ -58,7 +59,7 @@ class Ast:
 
     def _evaluate(self, node, vrs: Dict[str, RuleMatch]):
         if node.name == 'asn':
-            return {node.matched[0].value: node.matched[1]}
+            return {idt.value: (i, node.matched[1]) for i, idt in enumerate(node.matched[0].matched)}
 
         for token in node.matched:
             if isinstance(token, RuleMatch) and not token.value:
@@ -68,7 +69,13 @@ class Ast:
         tokens = [token for token in node.matched if not isinstance(token, RuleMatch)]
 
         if node.matched[0].name == 'IDT':
-            return self._evaluate(copy.deepcopy(vrs[node.matched[0].value]), vrs)
+            i, rule = vrs[node.matched[0].value]
+            result = self._evaluate(copy.deepcopy(rule), vrs)
+
+            if isinstance(result, TupleValue):
+                return result.value[i]
+
+            return result
 
         elif node.name in rule_value_map:
             return rule_value_map[node.name](values, tokens)

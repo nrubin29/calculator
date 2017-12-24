@@ -92,14 +92,15 @@ class ImmutableIndexedDict:
         return self._len
 
     def index(self, key):
-        return self._key_indices[key]
+        return self._key_indices.get(key, None)
 
     def key_at(self, i):
         return self._keys[i]
 
 
 rules_map = ImmutableIndexedDict((
-    ('asn', ('IDT EQL add',)),
+    ('asn', ('asb EQL add',)),
+    ('^asb', ('IDT CMA asb', 'IDT')),
     ('add', ('mul ADD add', 'mui ADD add',)),
     ('mui', ('pow mul',)),
     ('mul', ('pow MUL mul',)),

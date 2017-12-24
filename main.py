@@ -9,7 +9,8 @@ if __name__ == '__main__':
     calc = Calculator()
 
     if len(sys.argv) > 1:
-        print(calc.evaluate(' '.join(sys.argv[1:])))
+        for line in ' '.join(sys.argv[1:]).split(';'):
+            print(calc.evaluate(line))
 
     else:
         while True:

@@ -260,7 +260,7 @@ class MatrixValue(Value):
             for row in range(len(Q)):
                 Q[row][j] = val[row]
 
-        return TupleValue([Q, R])
+        return TupleValue([MatrixValue(Q), MatrixValue(R)])
 
 
 class MatrixRowValue(Value):
