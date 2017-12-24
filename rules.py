@@ -4,7 +4,7 @@ This file contains methods to handle Valueing RuleMatches
 from typing import List
 
 from common import Token
-from vartypes import VariableValue, NumberValue, MatrixRowValue, MatrixValue, Value, OperatorBodyValue
+from vartypes import VariableValue, NumberValue, MatrixRowValue, MatrixValue, Value, TupleValue
 
 
 def flatten(l):
@@ -35,8 +35,8 @@ def mbd(values: List[Value], _) -> MatrixValue:
     return MatrixValue(values)
 
 
-def opb(values: List[Value], _) -> OperatorBodyValue:
-    return OperatorBodyValue(values)
+def opb(values: List[Value], _) -> TupleValue:
+    return TupleValue(values)
 
 
 def add(operands: List[Value], operator: Token) -> Value:

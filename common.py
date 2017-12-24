@@ -48,6 +48,7 @@ token_map = OrderedDict((
     (r'solve',              'OPR'),
     (r'eval',               'OPR'),
     (r'ls',                 'OPR'),
+    (r'qr',                 'OPR'),
     (r'[a-zA-Z_]+',         'IDT'),
     (r'=',                  'EQL'),
     (r'\+',                 'ADD'),

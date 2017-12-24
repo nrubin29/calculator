@@ -107,6 +107,9 @@ class NumberValue(Value):
     def identity(self):
         return MatrixValue([[1 if col is row else 0 for col in range(int(self.value))] for row in range(int(self.value))])
 
+    def zeroes(self, other):
+        return MatrixValue([[0 for _ in range(int(other.value))] for _ in range(int(self.value))])
+
 
 class MatrixValue(Value):
     def __init__(self, data):
@@ -123,13 +126,25 @@ class MatrixValue(Value):
     def __str__(self):
         return '[\n' + '\n'.join(['[' + ', '.join(map(lambda cell: str(round(cell, 5)), row)) + ']' for row in self.value]) + '\n]'
 
+    def sub(self, other):
+        if isinstance(other, MatrixValue):
+            if len(self.value) != len(other.value) or len(self.value[0]) != len(other.value[0]):
+                raise EvaluationException('Attempted to subtract two matrices of different dimensions')
+
+            return MatrixValue([[self.value[row][col] - other.value[row][col] for col in range(len(self.value[row]))] for row in range(len(self.value))])
+
+        raise EvaluationException('Cannot sub {} and {}'.format(self.type, other.type))
+
     def mul(self, other):
         if isinstance(other, NumberValue):
-            # Number * Matrix
+            # Matrix * Number
             return MatrixValue([[cell * other.value for cell in row] for row in self.value])
 
         elif isinstance(other, MatrixValue):
             # Matrix * Matrix
+            if len(self.value[0]) != len(other.value):
+                raise EvaluationException('Cannot multiply matrices of dimensions {} and {}'.format((len(self.value), len(self.value[0])), (len(other.value), len(other.value[0]))))
+
             result = [[0 for _ in range(len(other.value[0]))] for _ in range(len(self.value))]
 
             for i in range(len(self.value)):
@@ -141,7 +156,15 @@ class MatrixValue(Value):
 
         else:
             raise EvaluationException('Cannot mul {} and {}'.format(self.type, other.type))
-    
+
+    def div(self, other):
+        if isinstance(other, NumberValue):
+            # Matrix / Number
+            return MatrixValue([[cell / other.value for cell in row] for row in self.value])
+
+        else:
+            raise EvaluationException('Cannot div {} and {}'.format(self.type, other.type))
+
     def det(self):
         return NumberValue(self._det(self.value))
 
@@ -207,6 +230,38 @@ class MatrixValue(Value):
     def ls(self, other):
         return (self.trans().mul(self)).inv().mul(self.trans()).mul(other)
 
+    def norm(self):
+        return NumberValue(math.sqrt(sum([sum([col * col for col in row]) for row in self.value])))
+
+    def squeeze(self):
+        return MatrixValue([[cell for row in self.value for cell in row]])
+
+    def _col(self, col):
+        """ Isolates an individual column from the matrix """
+        return MatrixValue([[row[col]] for row in self.value])
+
+    def qr(self):
+        m = NumberValue(len(self.value))
+        n = NumberValue(len(self.value[0]))
+
+        Q = m.zeroes(m).value
+        R = n.zeroes(n).value
+
+        for j in range(n.value):
+            v = self._col(j)
+
+            for i in range(j):
+                R[i][j] = MatrixValue(Q)._col(i).trans().mul(self._col(j)).value[0][0]
+                v = v.squeeze().sub(MatrixValue(Q)._col(i).trans().mul(NumberValue(R[i][j])))
+
+            R[j][j] = v.norm().value
+
+            val = v.div(NumberValue(R[j][j])).squeeze().value[0]
+            for row in range(len(Q)):
+                Q[row][j] = val[row]
+
+        return TupleValue([Q, R])
+
 
 class MatrixRowValue(Value):
     def __init__(self, data):
@@ -219,7 +274,7 @@ class MatrixRowValue(Value):
             self.value = data
 
 
-class OperatorBodyValue(Value):
+class TupleValue(Value):
     def __init__(self, args: List):
         super().__init__()
 
