@@ -4,7 +4,7 @@ This file contains the Ast class, which represents an abstract syntax tree which
 import copy
 from typing import Dict
 
-from common import RuleMatch, remove, left_assoc, Token
+from common import RuleMatch, remove, left_assoc, Token, precedence
 from rules import rule_value_map, rule_value_operation_map
 from vartypes import TupleValue
 
@@ -84,11 +84,55 @@ class Ast:
             return rule_value_operation_map[node.name](values, tokens[0] if len(tokens) > 0 else None)  # This extra rule is part of the num hotfix.
 
     def infix(self) -> str:
-        # TODO: Add parentheses and missing tokens.
         return self._infix(self.root)
 
     def _infix(self, node: RuleMatch) -> str:
-        return ' '.join(map(lambda t: t.value if isinstance(t, Token) else self._infix(t), node.matched))
+        # TODO: Add missing tokens.
+        s = ''
+
+        if len(node.matched) == 1:
+            s += node.matched[0].value
+
+        else:
+            for c in [node.matched[1]] + [node.matched[0]] + node.matched[2:]:
+                if isinstance(c, RuleMatch):
+                    if c.name in precedence and node.name in precedence and precedence.index(c.name) > precedence.index(node.name):
+                        s += '(' + self._infix(c) + ') '
+
+                    else:
+                        s += self._infix(c) + ' '
+                else:
+                    s += c.value + ' '
+
+        return s.strip()
+
+    def prefix(self) -> str:
+        return self._prefix(self.root)
+
+    def _prefix(self, node: RuleMatch) -> str:
+        s = ''
+
+        for c in node.matched:
+            if isinstance(c, RuleMatch):
+                s += self._prefix(c) + ' '
+            else:
+                s += c.value + ' '
+
+        return s.strip()
+
+    def postfix(self) -> str:
+        return self._postfix(self.root)
+
+    def _postfix(self, node: RuleMatch) -> str:
+        s = ''
+
+        for c in node.matched[1:] + [node.matched[0]]:
+            if isinstance(c, RuleMatch):
+                s += self._postfix(c) + ' '
+            else:
+                s += c.value + ' '
+
+        return s.strip()
 
     def __str__(self):
         return str(self.root)  # + '\n>> ' + self.infix()

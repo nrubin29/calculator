@@ -98,28 +98,48 @@ class ImmutableIndexedDict:
         return self._keys[i]
 
 
-rules_map = ImmutableIndexedDict((
-    ('asn', ('asb EQL add',)),
-    ('^asb', ('IDT CMA asb', 'IDT')),
-    ('add', ('mul ADD add', 'mui ADD add',)),
-    ('mui', ('pow mul',)),
-    ('mul', ('pow MUL mul',)),
-    ('pow', ('opr POW pow',)),
-    ('opr', ('OPR LPA opb RPA',)),
-    ('^opb', ('add CMA opb', 'add')),
-    ('neg', ('ADD num', 'ADD opr')),
-    ('var', ('IDT',)),
-    ('num', ('NUM', 'LPA add RPA')),
-    ('mat', ('LBR mbd RBR',)),
-    ('^mbd', ('mrw PPE mbd', 'mrw')),
-    ('^mrw', ('add CMA mrw', 'add')),
-))
+rules_map = {
+    'infix': ImmutableIndexedDict((
+        ('asn', ('asb EQL add',)),
+        ('^asb', ('IDT CMA asb', 'IDT')),
+        ('add', ('mul ADD add', 'mui ADD add',)),
+        ('mui', ('pow mul',)),
+        ('mul', ('pow MUL mul',)),
+        ('pow', ('opr POW pow',)),
+        ('opr', ('OPR LPA opb RPA',)),
+        ('^opb', ('add CMA opb', 'add')),
+        ('neg', ('ADD num', 'ADD opr')),
+        ('var', ('IDT',)),
+        ('num', ('NUM', 'LPA add RPA')),
+        ('mat', ('LBR mbd RBR',)),
+        ('^mbd', ('mrw PPE mbd', 'mrw')),
+        ('^mrw', ('add CMA mrw', 'add')),
+    )),
+    'prefix': ImmutableIndexedDict((
+        ('asn', ('EQL asb add',)),
+        ('^asb', ('CMA IDT asb', 'IDT')),
+        ('opr', ('OPR opb',)),
+        ('^opb', ('CMA pow opb', 'pow')),
+        ('pow', ('POW mul pow',)),
+        ('mul', ('MUL add mul',)),
+        ('add', ('ADD opr add',)),
+        ('neg', ('ADD num', 'ADD opr')),
+        ('var', ('IDT',)),
+        ('num', ('NUM', 'pow')),
+    )),
+}
 
 
 left_assoc = {
     'ADD': 'add',
     'MUL': 'mul',
 }
+
+precedence = [
+    'pow',
+    'mul',
+    'add'
+]
 
 operations = ('pos', 'neg', 'add', 'sub', 'mul', 'div', 'mod', 'pow', 'sqrt', 'exp', 'identity', 'det', 'trans', 'cof', 'adj', 'inv', 'rref', 'trnsform', 'solve', 'ls', 'eval')
 

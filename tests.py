@@ -11,12 +11,12 @@ from calculator import Calculator
 from common import EvaluationException
 
 
-def evaluate(eqtn: str, verbose=True):
+def evaluate(eqtn: str, tpe='infix', verbose=True):
     if verbose:
         print(eqtn)
 
     calc = Calculator()
-    res = calc.evaluate(eqtn, verbose)
+    res = calc.evaluate(eqtn, tpe, verbose)
 
     if verbose:
         print(res, '\n' + '-' * 50)
