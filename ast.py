@@ -48,6 +48,11 @@ class Ast:
                         node.matched[i:] = node.matched[i].matched
                         return self._fixed(node)
 
+        # This moves operators to the front of matched.
+        if len(node.matched) == 3 and isinstance(node.matched[1], Token):
+            node.matched = [node.matched[1]] + [node.matched[0]] + node.matched[2:]
+
+        # This fixes the matched nodes.
         if isinstance(node, RuleMatch):
             for i in range(len(node.matched)):
                 node.matched[i] = self._fixed(node.matched[i])
